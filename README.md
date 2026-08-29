@@ -1,7 +1,9 @@
 # Nexora
 Uma empresa que utiliza IoT para conectar equipamentos, processos e ambientes, transformando dados operacionais em informações úteis para eficiência e tomada de decisão.
 
+
 | Membro | E-mail |
+| :--- | :--- |
 | Arthur Santanda de Andrade | asa4@cesar.school |
 | Lucas Silva Moreira do Nascimento | lsmn@cesar.school |
 | Mariana de Melquiades Melo | mmm4@cesar.school |

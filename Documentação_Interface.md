@@ -56,3 +56,7 @@ Painel de cartões com indicadores essenciais, pré-definidos conforme a funçã
 > * ✅ ❌ = Atendido parcialmente
 > * ❌ = Não atendido
 > * ❌ ❌ = Sem suporte / Crítico
+
+<p align="center">
+  <img src="image_2026-08-29_160049600.png" alt="Texto Alt" width="700">
+</p>

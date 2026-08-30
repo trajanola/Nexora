@@ -13,6 +13,9 @@ A barra superior organiza o sistema em quatro abas principais:
 * **Configuração:** Ajustes de parâmetros, preferências da plataforma e calibração dos aparelhos.
 * **Alertas:** Painel centralizador de notificações críticas e avisos de manutenção urgente.
 
+![Interface](Interface Nexora.png)
+
+
 ---
 
 ## 3. Painel do Dispositivo (Aba "Dispositivos")

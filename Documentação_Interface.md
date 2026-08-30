@@ -3,6 +3,11 @@
 ## 1. Visão Geral da Plataforma
 A plataforma foi criada para armazenar e facilitar o gerenciamento de dados captados por sensores. A interface foi projetada para oferecer acompanhamento em tempo real, levantamento histórico e controle de parâmetros operacionais dos dispositivos.
 
+---
+
+### 1.1. Visão Geral do Problema
+As Pequenas e Médias Empresas (PMEs) movimentam a economia real, mas a forma tradicional como o mercado vende "ESG" afasta o pequeno empresário.
+
 | Indicador/Fator | O que os dados mostram? | O que isso significa na prática? |
 | :---: | :---: | :---: |
 | **Importância Econômica** | 26,5% do PIB e 80% das vagas de trabalho formais. | As PMEs sustentam o país, mas operam com margens de lucro apertadas. |

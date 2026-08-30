@@ -3,7 +3,7 @@
 ## 👥 Integrantes do Projeto
 
 | Membro | E-mail |
-| :--- | :--- |
+| :---: | :---: |
 | Arthur Santanda de Andrade | asa4@cesar.school |
 | Lucas Silva Moreira do Nascimento | lsmn@cesar.school |
 | Mariana de Melquiades Melo | mmm4@cesar.school |

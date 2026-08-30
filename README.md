@@ -38,9 +38,16 @@ O NEXORA é uma plataforma desenvolvida para modernizar, simplificar e otimizar 
 - **[Documento de Análise de Competidores](https://github.com/trajanola/Nexora/blob/main/Documenta%C3%A7%C3%A3o_Interface.md)**
 
 - **BenchMark da Análise de Competidores:**
-![Análise de Competidores](https://raw.githubusercontent.com/trajanola/Nexora/main/image_2026-08-29_160049600.png)
 
-- **Interface - Protótipo Não Funcional:**
+| Funcionalidade / Competidor | atDesigner-TP | Plataforma IoT Tecnolog | Node-RED | Blynk IoT | AWS IoT Core | 🚀 NEXORA |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Interface simples e de fácil uso** | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
+| **Reúne informações de forma eficiente** | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **Ferramentas personalizáveis** | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
+| **Qtd. de dispositivos simultâneos** | 32 | 20-30 | 15-25 | 10-20 | 30-40 | **50** |
+| **Segurança e controle de acesso** | ❌ ❌ | ✅ ❌ | ❌ ❌ | ✅ ❌ | ✅ ✅ | ✅ ✅ |
+
+- **Interface - Protótipo Não Funcional:**  
 ![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/Interface%20Nexora.png)
 
 ### 📌 Entrega 2

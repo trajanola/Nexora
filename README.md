@@ -38,6 +38,9 @@ O NEXORA é uma plataforma desenvolvida para modernizar, simplificar e otimizar 
 - **BenchMark da Análise de Competidores:**
 ![Análise de Competidores](https://raw.githubusercontent.com/trajanola/Nexora/main/image_2026-08-29_160049600.png)
 
+- **Interface - Protótipo Não Funcional:**
+![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/Interface%20Nexora.png)
+
 ### 📌 Entrega 2
 - *Conteúdo indisponível temporariamente.*
 

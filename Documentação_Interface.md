@@ -3,6 +3,13 @@
 ## 1. Visão Geral da Plataforma
 A plataforma foi criada para armazenar e facilitar o gerenciamento de dados captados por sensores. A interface foi projetada para oferecer acompanhamento em tempo real, levantamento histórico e controle de parâmetros operacionais dos dispositivos.
 
+| Indicador/Fator | O que os dados mostram? | O que isso significa na prática? |
+| :---: | :---: | :---: |
+| **Importância Econômica** | 26,5% do PIB e 80% das vagas de trabalho formais. | As PMEs sustentam o país, mas operam com margens de lucro apertadas. |
+| **O Paradoxo do ESG** | 67% dos gestores não sabem o que a sigla ESG significa. | A maioria já faz boas ações no dia a dia, mas não sabe comprovar isso. |
+| **Foco da Gestão** | O dono centraliza tudo e passa o dia "apagando incêndios". | Ninguém tem tempo para preencher relatórios longos e burocráticos. |
+| **O Risco de Ficar Parado** | Grandes empresas e bancos já cobram critérios sustentáveis. | A empresa perde contratos de fornecimento e paga juros mais altos em empréstimos. |
+
 ---
 
 ## 2. Navegação Principal

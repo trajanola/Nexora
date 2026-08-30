@@ -10,7 +10,7 @@
 | Matheus Trajano de Freitas | **mtf@cesar.school** |
 | Paulo Ferreira Fonseca dos Santos | **pffs@cesar.school** |
 | Ricardo Amorim Amorim Bayma | **rab5@cesar.school** |
-| Lucas Berenguer Avelino de Souza | **ibas@cesar.school** |
+| Lucas Berenguer Avelino de Souza | **lbas@cesar.school** |
 | Matheus Guerra Britto | **mgb3@cesar.school** |
 
 ---

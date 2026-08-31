@@ -2,6 +2,8 @@
 
 ## 👥 Integrantes do Projeto
 
+<div align="center">
+
 | Membro | E-mail |
 | :---: | :---: |
 | Arthur Santanda de Andrade | **asa4@cesar.school** |
@@ -12,6 +14,14 @@
 | Ricardo Amorim Amorim Bayma | **rab5@cesar.school** |
 | Lucas Berenguer Avelino de Souza | **lbas@cesar.school** |
 | Matheus Guerra Britto | **mgb3@cesar.school** |
+
+</div>
+
+---
+
+## 🎯 Contexto e Propósito
+
+A maioria das empresas falha na adoção de IoT não por falta de sensores, mas por incapacidade de transformar dados brutos em inteligência aplicável. O objetivo central do Nexora é ir além de um simples dashboard passivo: a plataforma foi desenhada para educar as empresas, traduzindo sinais operacionais em percepção de valor financeiro e orientação estratégica.
 
 ---
 

@@ -15,6 +15,27 @@ As Pequenas e Médias Empresas (PMEs) movimentam a economia real, mas a forma tr
 | **Foco da Gestão** | O dono centraliza tudo e passa o dia "apagando incêndios". | Ninguém tem tempo para preencher relatórios longos e burocráticos. |
 | **O Risco de Ficar Parado** | Grandes empresas e bancos já cobram critérios sustentáveis. | A empresa perde contratos de fornecimento e paga juros mais altos em empréstimos. |
 
+### 1.2. Benchmarking: O Que o Mercado Oferece vs. Onde Ele Falha
+Para entender por que as PMEs não usam as ferramentas atuais, analisamos os três tipos de soluções existentes:
+
+| Categoria de Solução | Exemplos | O que faz bem? | Por que não serve para o Marcos? |
+| :---: | :---: | :---: | :---: |
+| Sistemas Corporativos Globais | Workiva, Sphera | Relatórios completos para multinacionais da Bolsa de Valores | Custo altíssimo em dólar, exige equipe técnica dedicada e consultorias caras. |
+| SaaS ESG Simples (Questionários) | Paresi, Improvefy | Questionários guiados e planos de ação em português. | Depende de preenchimento manual no teclado; Marcos não tem tempo para responder formulários. |
+| Supervisórios de IoT Tradicionais | atDesigner-TP, Plataforma Tecnolog | Monitora temperatura e consumo de energia por sensores. | Mostra apenas gráficos técnicos (, ), sem explicar como aquilo vira dinheiro ou conformidade. |
+
+# Comparativo Direto de Recursos
+
+| Funcionalidade / Recurso | atDesigner-TP | Plataforma Tecnolog | SaaS ESG Comum | Plataforma NEXORA |
+| :---: | :---: | :---: | :---: | :---: |
+| **Facilidade de Uso** | Complexa e técnica³ | Simples³ | Moderada (formulários)⁴ | Direta, visual e executiva³ |
+| **Como Coleta os Dados?** | Sensores (via nuvem)³ | Sensores (via nuvem)³ | Digitação manual⁴ | Sensores automáticos na fábrica³ |
+| **Limite de Aparelhos** | Até 32 dispositivos³ | 20 a 30 dispositivos³ | Não se aplica⁴ | Mais de 50 dispositivos³ |
+| **Converte em Dinheiro (R$)?** | Não³ | Não³ | Estimativas teóricas⁴ | Sim, mostra o ganho em R$³ |
+| **Explica a Causa do Problema?** | Apenas apita o alarme³ | Não³ | Não⁵ | Sim, cruza dados e aponta a raiz³ |
+| **Funciona se a Internet Cair?** | Não (trava)³ | Guarda pouco cache³ | Não (precisa de web)⁴ | Sim (*Offline-First*)³ |
+| **Ajuda a Vender para Grandes Clientes?** | Não³ | Não³ | Gera relatórios em PDF⁴ | Gera comprovação pronta para compras¹ |
+
 ---
 
 ## 2. Navegação Principal

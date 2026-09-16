@@ -39,7 +39,9 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 - JIRA
 
 ---
+## 🔗 &nbsp;Links Importantes
 
+-  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
 ## 📅 &nbsp;Entregas do Projeto
 
 ### 📌 &nbsp;Entrega 1

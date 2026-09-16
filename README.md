@@ -57,7 +57,10 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 | **Qtd. de dispositivos simultâneos** | 32 | 20-30 | 15-25 | 10-20 | 30-40 | **50** |
 | **Segurança e controle de acesso** | ❌ ❌ | ✅ ❌ | ❌ ❌ | ✅ ❌ | ✅ ✅ | ✅ ✅ |
 
+- **Print Jira:**
 
+![Print do Jira](./Captura%20de%20tela%202026-09-16%20160244.png)
+  
 - **Interface - Protótipo Não Funcional:**
 
 ![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/Interface%20Nexora.png)

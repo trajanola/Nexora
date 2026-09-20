@@ -62,11 +62,11 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 
 - **Print Jira:**
 
-![Print do Jira](./Captura%20de%20tela%202026-09-16%20160244.png)
+![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Captura%20de%20tela%202026-09-16%20160244.png)
   
 - **Interface - Protótipo Não Funcional:**
 
-![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/Interface%20Nexora.png)
+![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/docs/Interface%20Nexora.png)
 
 ### 📌 &nbsp;Entrega 2
 - *Conteúdo indisponível temporariamente.*

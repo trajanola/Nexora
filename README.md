@@ -60,14 +60,14 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 | **Qtd. de dispositivos simultâneos** | 32 | 20-30 | 15-25 | 10-20 | 30-40 | **50** |
 | **Segurança e controle de acesso** | ❌ ❌ | ✅ ❌ | ❌ ❌ | ✅ ❌ | ✅ ✅ | ✅ ✅ |
 
-- **Quadro da Sprint 01:**
-
-![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Docsnexora.png)
-  
 - **Interface - Protótipo Não Funcional:**
 
 ![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/docs/Interface%20Nexora.png)
 
+- **Quadro da Sprint 01:**
+
+![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Docsnexora.png)
+  
 ### 📌 &nbsp;Entrega 2
 - **Deployment da infaestrutura em produção:**
 - **Screencast de explicação do código Django:**

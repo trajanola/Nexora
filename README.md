@@ -173,7 +173,7 @@ Abra uma issue na aba [Issues](https://github.com/trajanola/Nexora/issues) do re
 
 - **Quadro da Sprint 01:**
 
-![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Docsnexora.png)
+![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%201.png)
   
 ### 📌 &nbsp;Entrega 2
 - **Deployment da infaestrutura em produção:**

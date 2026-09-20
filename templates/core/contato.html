@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fale Conosco - Nexora</title>
+</head>
+<body>
+    <p><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
+    <h1>Fale Conosco</h1>
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Nome:</label><br><input type="text" name="nome" required></p>
+        <p><label>E-mail:</label><br><input type="email" name="email" required></p>
+        <p><label>Mensagem:</label><br><textarea name="mensagem" rows="4" required></textarea></p>
+        <button type="submit">Enviar Mensagem</button>
+    </form>
+</body>
+</html>

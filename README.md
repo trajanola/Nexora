@@ -62,7 +62,7 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 
 - **Quadro da Sprint 01:**
 
-![Print do Jira]https://github.com/trajanola/Nexora/blob/main/docs/Docsnexora.png
+![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Docsnexora.png)
   
 - **Interface - Protótipo Não Funcional:**
 

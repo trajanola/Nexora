@@ -180,6 +180,8 @@ Abra uma issue na aba [Issues](https://github.com/trajanola/Nexora/issues) do re
 - **Screencast de explicação do código Django:**
 - **Quadro da Sprint 02:**
 
+![Print do Quadro](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%202.png)
+
 ### 📌 &nbsp;Entrega 3
 - *Conteúdo indisponível temporariamente.*
 

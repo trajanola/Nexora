@@ -178,7 +178,7 @@ Abra uma issue na aba [Issues](https://github.com/trajanola/Nexora/issues) do re
 ### 📌 &nbsp;Entrega 2
 - **Deployment da infaestrutura em produção:**
 - **Screencast de explicação do código Django:**
-[Vídeo - Screencast](https://youtu.be/-9yDV5KGPoM)
+[Vídeo - Screencast](https://youtu.be/Fvb92Io1STo)
 - **Quadro da Sprint 02:**
 
 ![Print do Quadro](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%202.png)

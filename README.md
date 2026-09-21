@@ -176,9 +176,10 @@ Abra uma issue na aba [Issues](https://github.com/trajanola/Nexora/issues) do re
 ![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%201.png)
   
 ### 📌 &nbsp;Entrega 2
-- **Deployment da infaestrutura em produção:**
+- **Screencast Deployment da infaestrutura em produção:**
+[Vídeo - Screencast Deployment](https://youtu.be/GkYC9-hXWlg)
 - **Screencast de explicação do código Django:**
-[Vídeo - Screencast](https://youtu.be/Fvb92Io1STo)
+[Vídeo - Screencast Código](https://youtu.be/Fvb92Io1STo)
 - **Quadro da Sprint 02:**
 
 ![Print do Quadro](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%202.png)

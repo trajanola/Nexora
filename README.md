@@ -45,12 +45,12 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
 -  [Deploy em Desenvolvimento:](http://3.95.179.201)
 ---
-## 🚀 Como rodar o projeto localmente
+## Como rodar o projeto localmente
 
 ### Pré-requisitos
 
-- **Git** instalado (`git --version` para conferir)
-- **Python 3.10+** (`python --version`)
+- Git instalado (`git --version` para conferir)
+- Python 3.12 ou superior (`python --version`)
 - Um editor de código, como o VS Code
 
 ### 1. Clonar o repositório
@@ -70,18 +70,18 @@ git clone git@github.com:trajanola/Nexora.git
 
 O ambiente virtual isola as dependências do projeto das do resto do seu computador.
 
-**Linux / macOS:**
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
-
 **Windows (PowerShell):**
 
 ```powershell
 python -m venv venv
 venv\Scripts\Activate.ps1
+```
+
+**Linux / macOS:**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 Quando estiver ativo, o terminal mostra `(venv)` no começo da linha.
@@ -94,19 +94,41 @@ Com o ambiente virtual ativo, dentro da pasta `Nexora`:
 pip install -r requirements.txt
 ```
 
-### 4. Configurar variáveis de ambiente
+### 4. Configurar a variável de ambiente `SECRET_KEY`
 
-O repositório não possui um arquivo `.env.example`. Se o projeto depender de variáveis como `SECRET_KEY` ou credenciais de banco, confira o arquivo `config/settings.py` para ver quais são lidas e crie um arquivo `.env` na raiz do projeto com esses valores.
+O projeto lê a `SECRET_KEY` do Django a partir de uma variável de ambiente (`config/settings.py`). Sem ela, o servidor não inicia e mostra o erro `KeyError: 'SECRET_KEY'`.
 
-> O `.env` não deve ser enviado ao GitHub. Confirme que ele está listado no `.gitignore`.
+Gere uma chave:
+
+```bash
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+
+Depois defina a variável no terminal, **antes** de rodar o servidor (vale apenas para a sessão atual do terminal):
+
+**Windows (PowerShell):**
+
+```powershell
+$env:SECRET_KEY = "cole-a-chave-gerada-aqui"
+```
+
+**Linux / macOS:**
+
+```bash
+export SECRET_KEY="cole-a-chave-gerada-aqui"
+```
+
+> Nunca coloque a `SECRET_KEY` real dentro do código nem envie arquivos com segredos ao GitHub.
 
 ### 5. Preparar o banco de dados
+
+O projeto usa SQLite (`db.sqlite3`), então não é necessário instalar nem configurar um banco separado.
 
 ```bash
 python manage.py migrate
 ```
 
-Se quiser acessar o painel administrativo, crie um superusuário:
+Opcional, para acessar o painel administrativo:
 
 ```bash
 python manage.py createsuperuser
@@ -118,7 +140,9 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Abra <http://127.0.0.1:8000> no navegador. O painel administrativo fica em <http://127.0.0.1:8000/admin>.
+Abra http://127.0.0.1:8000 no navegador. O painel administrativo fica em http://127.0.0.1:8000/admin.
+
+Para parar o servidor, use `Ctrl+C` no terminal.
 
 ### Problemas comuns
 
@@ -126,9 +150,9 @@ Abra <http://127.0.0.1:8000> no navegador. O painel administrativo fica em <http
 |---|---|
 | `python: command not found` | Use `python3`, ou instale o Python |
 | `ModuleNotFoundError` | O ambiente virtual não está ativo ou faltou o `pip install -r requirements.txt` |
-| `ImproperlyConfigured` / `SECRET_KEY` vazia | Falta configurar as variáveis de ambiente (veja o passo 4) |
-| Erro ao instalar `psycopg2` ou `mysqlclient` | Instale as bibliotecas de sistema do banco, ou use `psycopg2-binary` |
-| Erro de permissão no PowerShell | Rode `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
+| `KeyError: 'SECRET_KEY'` | A variável de ambiente não foi definida neste terminal (veja o passo 4) |
+| Página sem estilo e `404` para o CSS no terminal | Os templates devem começar com `{% load static %}` e usar `<link rel="stylesheet" href="{% static 'css/style.css' %}">` |
+| Erro de permissão no PowerShell ao ativar o venv | Rode `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` |
 
 ### Fluxo do dia a dia
 
@@ -148,8 +172,7 @@ git checkout -b minha-feature
 
 ### 🐞 Encontrou um bug?
 
-Abra uma issue na aba [Issues](https://github.com/trajanola/Nexora/issues) do repositório e inclua os passos para reproduzir o problema.
-
+Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.
 ---
 ## 📅 &nbsp;Entregas do Projeto
 

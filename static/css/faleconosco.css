@@ -1,0 +1,18 @@
+body {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(135deg, #0a1a3a 0%, #0b2150 55%, #0d5cf5 100%) top / 100% 260px no-repeat #f4f7fb;
+}
+
+a {
+    position: absolute;
+    top: 20px;
+    left: 24px;
+    color: #f0f2f3;
+    text-decoration: none;
+    font-size: 0.95rem;
+}

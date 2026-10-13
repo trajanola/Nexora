@@ -1,9 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap');
 
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
     margin: 0;
+    background: #f4f7fb;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -37,7 +42,6 @@ h2{
 ul{
     list-style: none;
     padding: 20px;
-    min-width: 10px;
     max-width: 1000px;
     margin: 40px auto;
     display: grid;
@@ -46,17 +50,23 @@ ul{
 }
 
 ul li{
-    list-style: none;
-    width: 300px;
-    height: 100px;
+    min-height: 100px;
     padding: 20px;
     border-radius: 12px;
     background: aliceblue;
     border-top: 4px solid blueviolet;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
-    min-width: 10px;
-    max-width: 1000px;
-    margin: 40px auto;
-    display: grid;
-    gap: 30px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+ul li:hover{
+    transform: translateY(-8px);
+}
+
+ul li a:hover{
+    text-decoration: underline;
+}
+
+footer{
+    bottom: 0;
+    width: 100%;
 }

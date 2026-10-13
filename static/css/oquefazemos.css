@@ -1,0 +1,9 @@
+body{
+    text-align: center;
+    background: linear-gradient(135deg, #1a0d1e 0%, #5d1772 55%, #9b14c5 100%) top / 100% 260px no-repeat #f4f7fb;;
+    color: #f4f7fb;
+}
+a{
+    color: #f4f7fb;
+    text-align: left;
+}

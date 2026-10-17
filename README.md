@@ -216,14 +216,27 @@ Comparativo de funcionalidades, capacidade e segurança entre plataformas de mer
 
 </details>
   
-### 📌 &nbsp;Entrega 2
-- **Screencast Deployment da infaestrutura em produção:**
-[Vídeo - Screencast Deployment](https://youtu.be/GkYC9-hXWlg)
-- **Screencast de explicação do código Django:**
-[Vídeo - Screencast Código](https://youtu.be/Fvb92Io1STo)
-- **Quadro da Sprint 02:**
+<details>
+<summary><b>📌 Entrega 2: Infraestrutura, Deploy e Código</b> (clique para expandir)</summary>
 
+<br>
+
+Apresentação dos screencasts demonstrativos da infraestrutura em produção e arquitetura do código Django, acompanhado do quadro da Sprint 02.
+
+---
+
+### 🎥 Demonstrações em Vídeo
+- 🎬 **[Screencast Deployment da infraestrutura em produção](https://youtu.be/GkYC9-hXWlg)**
+- 🎬 **[Screencast de explicação do código Django](https://youtu.be/Fvb92Io1STo)**
+
+---
+
+### 📋 Planejamento e Acompanhamento
+
+#### Quadro da Sprint 02
 ![Print do Quadro](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%202.png)
+
+</details>
 
 ### 📌 &nbsp;Entrega 3
 

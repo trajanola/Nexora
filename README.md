@@ -211,38 +211,37 @@ Abra uma issue na aba **Issues** do repositório e inclua os passos para reprodu
 ### 📌 &nbsp;Entrega 3
 
 #### 📖 Histórias de Usuário
-
+ 
 Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[historias-de-usuario.md](./docs/historias-de-usuario.md)**
-
+ 
 #### ✅ Histórias implementadas
-
+ 
 **US12: Cadastro de dispositivos e sensores pela web**
-
+ 
 | | |
 |---|---|
 | **Como** | Gerente de Manutenção (Carlos) |
 | **Quero** | cadastrar e editar máquinas e sensores em uma tela simples |
 | **Para** | conectar novos equipamentos sem depender de suporte técnico |
-| **Critério de pronto** | Formulário valida os campos, dispositivo salvo aparece na lista, chave de API é gerada e o status online/offline é exibido |
-
+| **Critério de pronto** | Formulário valida os campos, o dispositivo salvo aparece na lista e pode ser editado |
+ 
 **US13: Configuração de tarifa de energia e parâmetros financeiros**
-
+ 
 | | |
 |---|---|
 | **Como** | Proprietário (Marcos) |
 | **Quero** | informar a tarifa de energia e o custo de hora parada |
 | **Para** | que os cálculos em Reais reflitam a realidade da minha fábrica |
-| **Critério de pronto** | Valores são validados e salvos por empresa, vêm pré-preenchidos com média regional e alimentam o cálculo de custo |
-
+| **Critério de pronto** | Valores são validados e salvos por empresa, vêm pré-preenchidos com valores padrão de referência e a tarifa alimenta o cálculo de custo |
+ 
 **US03: Tradutor de anomalias em custo financeiro (R$)**
-
+ 
 | | |
 |---|---|
 | **Como** | Proprietário (Marcos) |
 | **Quero** | ver no dashboard o custo mensal em Reais de uma anomalia |
 | **Para** | entender o impacto direto das falhas na lucratividade |
-| **Critério de pronto** | Dashboard mostra "custo adicional estimado de R$ X.XXX/mês" calculado com a tarifa configurada, e o prazo de payback do reparo |
-
+| **Critério de pronto** | Dashboard mostra "custo adicional estimado de R$ X.XXX/mês" calculado com a tarifa configurada e, quando há custo de reparo cadastrado, o prazo de payback do reparo |
 
 ### 📌 &nbsp;Entrega 4
 - *Conteúdo indisponível temporariamente.*

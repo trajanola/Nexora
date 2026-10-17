@@ -45,7 +45,9 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
 -  [Deploy em Desenvolvimento:](http://3.95.179.201)
 ---
-## Como rodar o projeto localmente
+## 💻 &nbsp;Como Rodar o Projeto Localmente
+<details>
+<summary><b>Requisitos funcionais para rodar localmente</b> (clique para expandir)</summary>
 
 ### Pré-requisitos
 
@@ -169,7 +171,7 @@ Para contribuir, crie uma branch antes de mexer no código:
 ```bash
 git checkout -b minha-feature
 ```
-
+</details>
 ### 🐞 Encontrou um bug?
 
 Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.

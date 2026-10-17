@@ -238,44 +238,58 @@ Apresentação dos screencasts demonstrativos da infraestrutura em produção e 
 
 </details>
 
-### 📌 &nbsp;Entrega 3
+<details>
+<summary><b>📌 Entrega 3: Histórias de Usuário e Implementação</b> (clique para expandir)</summary>
 
-#### 📖 Histórias de Usuário
- 
+<br>
+
+Mapeamento das Histórias de Usuário com cenários de testes operacionais em BDD (Gherkin), funcionalidades entregues e acompanhamento do backlog no Jira.
+
+---
+
+### 📖 Histórias de Usuário
+
 Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[historias-de-usuario.md](./docs/historias-de-usuario.md)**
- 
-#### ✅ Histórias implementadas
- 
-**US12: Cadastro de dispositivos e sensores pela web**
- 
-| | |
+
+---
+
+### ✅ Histórias Implementadas
+
+#### US12: Cadastro de dispositivos e sensores pela web
+
+| Atributo | Detalhes |
 |---|---|
 | **Como** | Gerente de Manutenção (Carlos) |
-| **Quero** | cadastrar e editar máquinas e sensores em uma tela simples |
-| **Para** | conectar novos equipamentos sem depender de suporte técnico |
+| **Quero** | Cadastrar e editar máquinas e sensores em uma tela simples |
+| **Para** | Conectar novos equipamentos sem depender de suporte técnico |
 | **Critério de pronto** | Formulário valida os campos, o dispositivo salvo aparece na lista e pode ser editado |
- 
-**US13: Configuração de tarifa de energia e parâmetros financeiros**
- 
-| | |
+
+#### US13: Configuração de tarifa de energia e parâmetros financeiros
+
+| Atributo | Detalhes |
 |---|---|
 | **Como** | Proprietário (Marcos) |
-| **Quero** | informar a tarifa de energia e o custo de hora parada |
-| **Para** | que os cálculos em Reais reflitam a realidade da minha fábrica |
+| **Quero** | Informar a tarifa de energia e o custo de hora parada |
+| **Para** | Que os cálculos em Reais reflitam a realidade da minha fábrica |
 | **Critério de pronto** | Valores são validados e salvos por empresa, vêm pré-preenchidos com valores padrão de referência e a tarifa alimenta o cálculo de custo |
- 
-**US03: Tradutor de anomalias em custo financeiro (R$)**
- 
-| | |
+
+#### US03: Tradutor de anomalias em custo financeiro (R$)
+
+| Atributo | Detalhes |
 |---|---|
 | **Como** | Proprietário (Marcos) |
-| **Quero** | ver no dashboard o custo mensal em Reais de uma anomalia |
-| **Para** | entender o impacto direto das falhas na lucratividade |
+| **Quero** | Ver no dashboard o custo mensal em Reais de uma anomalia |
+| **Para** | Entender o impacto direto das falhas na lucratividade |
 | **Critério de pronto** | Dashboard mostra "custo adicional estimado de R$ X.XXX/mês" calculado com a tarifa configurada e, quando há custo de reparo cadastrado, o prazo de payback do reparo |
 
-#### 📋 Backlog (Jira)
+---
+
+### 📋 Backlog (Jira)
+
+#### Quadro da Sprint 03
 ![Quadro da Sprint 03](./docs/entrega3_backlog_jira.png)
 
+</details>
 
 ### 📌 &nbsp;Entrega 4
 - *Conteúdo indisponível temporariamente.*

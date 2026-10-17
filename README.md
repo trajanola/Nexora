@@ -176,28 +176,45 @@ Abra uma issue na aba **Issues** do repositório e inclua os passos para reprodu
 ---
 ## 📅 &nbsp;Entregas do Projeto
 
-### 📌 &nbsp;Entrega 1
-- **[Desk Research](https://www.figma.com/board/jxNemj7jNW6uGalSK9BPTA/Projetos-2?t=3C9odntDyPqumqQf-0)**
+<details>
+<summary><b>📌 Entrega 1: Pesquisa, Benchmarking e Prototipagem</b> (clique para expandir)</summary>
 
-- **[Documento de Análise de Competidores](https://github.com/trajanola/Nexora/blob/main/Documenta%C3%A7%C3%A3o_Interface.md)**
+<br>
 
-- **BenchMark da Análise de Competidores:**
+Nesta primeira etapa, estruturamos a base conceitual, a análise de mercado e a prototipagem inicial do projeto **Nexora**, definindo nossos diferenciais competitivos e o escopo da Sprint 01.
+
+---
+
+### 🔍 Pesquisa e Documentação
+
+* **[Desk Research](https://www.figma.com/board/jxNemj7jNW6uGalSK9BPTA/Projetos-2?t=3C9odntDyPqumqQf-0):** Levantamento inicial de requisitos, dores dos usuários e alinhamento estratégico no Figma.
+* **[Documento de Análise de Competidores](https://github.com/trajanola/Nexora/blob/main/Documenta%C3%A7%C3%A3o_Interface.md):** Detalhamento técnico e estrutural dos concorrentes diretos e indiretos no GitHub.
+
+---
+
+### 📊 Benchmark da Análise de Competidores
+
+Comparativo de funcionalidades, capacidade e segurança entre plataformas de mercado e o **Nexora**:
 
 | Funcionalidade / Competidor | atDesigner-TP | Plataforma IoT Tecnolog | Node-RED | Blynk IoT | AWS IoT Core | 🚀 _NEXORA_ |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Interface simples e de fácil uso** | ❌ | ✅ | ❌ | ✅ | ❌ | ✅ |
-| **Reúne informações de forma eficiente** | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
-| **Ferramentas personalizáveis** | ✅ | ❌ | ✅ | ❌ | ✅ | ✅ |
-| **Qtd. de dispositivos simultâneos** | 32 | 20-30 | 15-25 | 10-20 | 30-40 | **50** |
-| **Segurança e controle de acesso** | ❌ ❌ | ✅ ❌ | ❌ ❌ | ✅ ❌ | ✅ ✅ | ✅ ✅ |
+| **Interface simples e de fácil uso** | ❌ | ✅ | ❌ | ✅ | ❌ | **✅** |
+| **Reúne informações de forma eficiente** | ❌ | ❌ | ❌ | ✅ | ❌ | **✅** |
+| **Ferramentas personalizáveis** | ✅ | ❌ | ✅ | ❌ | ✅ | **✅** |
+| **Qtd. de dispositivos simultâneos** | 32 | 20–30 | 15–25 | 10–20 | 30–40 | **50** |
+| **Segurança e controle de acesso** | ❌ ❌ | ✅ ❌ | ❌ ❌ | ✅ ❌ | ✅ ✅ | **✅ ✅** |
 
-- **Interface - Protótipo Não Funcional:**
+---
 
+### 💻 Prototipagem e Planejamento
+
+#### Protótipo Não Funcional da Interface
 ![Interface não funcional](https://github.com/trajanola/Nexora/blob/main/docs/Interface%20Nexora.png)
 
-- **Quadro da Sprint 01:**
-
+#### Quadro de Acompanhamento - Sprint 01
 ![Print do Jira](https://github.com/trajanola/Nexora/blob/main/docs/Quadro%201.png)
+
+</details>
   
 ### 📌 &nbsp;Entrega 2
 - **Screencast Deployment da infaestrutura em produção:**

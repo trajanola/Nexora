@@ -243,6 +243,10 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 | **Para** | entender o impacto direto das falhas na lucratividade |
 | **Critério de pronto** | Dashboard mostra "custo adicional estimado de R$ X.XXX/mês" calculado com a tarifa configurada e, quando há custo de reparo cadastrado, o prazo de payback do reparo |
 
+#### 📋 Backlog (Jira)
+![Quadro da Sprint 03](./docs/entrega3_backlog_jira.png)
+
+
 ### 📌 &nbsp;Entrega 4
 - *Conteúdo indisponível temporariamente.*
 

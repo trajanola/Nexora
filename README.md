@@ -167,10 +167,9 @@ Para contribuir, crie uma branch antes de mexer no código:
 git checkout -b minha-feature
 ```
 </details>
-### 🐞 Encontrou um bug?
 
-Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.
 ---
+
 ## 📅 &nbsp;Entregas do Projeto
 
 <details>
@@ -298,3 +297,6 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
 -  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
 ---
+
+## 🐞 &nbsp;Encontrou um bug?
+- Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.

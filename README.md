@@ -277,8 +277,13 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 </details>
 
-### 📌 &nbsp;Entrega 4
+<details>
+<summary><b>📌 Entrega 4: ??</b> (clique para expandir)</summary>
+
+<br>
+
 - *Conteúdo indisponível temporariamente.*
+</details>
 
 ## 🔗 &nbsp;Links Importantes
 

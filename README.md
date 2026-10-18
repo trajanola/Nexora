@@ -39,12 +39,7 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 - JIRA
 
 ---
-## 🔗 &nbsp;Links Importantes
 
--  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
--  **O BackLog das entregas se encontra na aba de documentos do Jira.**
--  [Deploy em Desenvolvimento:](http://3.95.179.201)
----
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>
 <summary><b>Requisitos funcionais para rodar localmente</b> (clique para expandir)</summary>
@@ -296,4 +291,10 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ### 📌 &nbsp;Entrega 4
 - *Conteúdo indisponível temporariamente.*
 
+---
+## 🔗 &nbsp;Links Importantes
+
+-  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
+-  **O BackLog das entregas se encontra na aba de documentos do Jira.**
+-  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
 ---

@@ -17,19 +17,13 @@
 
 </div>
 
----
-
 ## 🎯 &nbsp;Contexto e Propósito
 
 A maioria das empresas falha na adoção de IoT não por falta de sensores, mas por incapacidade de **transformar** dados brutos em inteligência aplicável. O objetivo central da _NEXORA_ é ir além de um simples dashboard passivo: a plataforma foi desenhada para educar as empresas, traduzindo sinais operacionais em percepção de **valor financeiro e orientação estratégica**.
 
----
-
 ## 📝 &nbsp;Descrição do Projeto
 
 A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimizar a gestão de ecossistemas educacionais. O sistema conecta alunos, professores e administradores em um ambiente integrado, intuitivo e funcional, facilitando o acompanhamento acadêmico, a organização de conteúdos e a comunicação institucional.
-
----
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
@@ -37,8 +31,6 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 - Django
 - HTML5
 - JIRA
-
----
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>
@@ -168,8 +160,6 @@ git checkout -b minha-feature
 ```
 </details>
 
----
-
 ## 📅 &nbsp;Entregas do Projeto
 
 <details>
@@ -290,13 +280,11 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ### 📌 &nbsp;Entrega 4
 - *Conteúdo indisponível temporariamente.*
 
----
 ## 🔗 &nbsp;Links Importantes
 
 -  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
 -  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
----
 
 ## 🐞 &nbsp;Encontrou um bug?
 - Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.

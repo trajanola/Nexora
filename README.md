@@ -104,7 +104,7 @@ $env:SECRET_KEY = "cole-a-chave-gerada-aqui"
 **Linux / macOS:**
 
 ```bash
-export SECRET_KEY="cole-a-chave-gerada-aqui"
+export SECRET_KEY='cole-a-chave-gerada-aqui'
 ```
 
 > Nunca coloque a `SECRET_KEY` real dentro do código nem envie arquivos com segredos ao GitHub.

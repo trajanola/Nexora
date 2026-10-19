@@ -265,4 +265,4 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 -  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
 
 ## 🐞 &nbsp;Encontrou um bug?
-- Abra uma issue na aba **Issues** do repositório e inclua os passos para reproduzir o problema.
+- Abra uma issue na aba **[Issues](https://github.com/trajanola/Nexora/issues)** do repositório e inclua os passos para reproduzir o problema.

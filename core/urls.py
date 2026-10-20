@@ -6,4 +6,6 @@ urlpatterns = [
     path('quem-somos/', views.sobre, name='sobre'),
     path('o-que-fazemos/', views.servicos, name='servicos'),
     path('fale-conosco/', views.contato, name='contato'),
+    path('cadastro/', views.Cadastro.as_view(), name='cadastro'),
+    path('login/', views.Logar.as_view(), name='login'),
 ]

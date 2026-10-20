@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body>
+    <header>
+        <h1>Nexora - IoT Manager</h1>
+    </header>
+    <h2></h2>
+    
+    <form method="POST">
+        
+        <label>Nome de Usuário:</label><br>
+        <input type="text" name="nome_usuario" required><br><br>
+        
+        <label>Senha:</label><br>
+        <input type="password" name="senha_usuario" required><br><br>
+        
+        <button type="submit">Entrar</button>
+        <a href="{% url 'cadastro' %}" 
+            <button type="button">Criar conta</button>
+        </a>    
+    </form>
+</body>
+</html>
+

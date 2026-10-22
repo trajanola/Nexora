@@ -1,6 +1,9 @@
 # Nexora: Histórias de Usuário (Entrega 03)
 
-Reúne as histórias de usuário com cenários de validação em BDD (Gherkin).
+Plataforma de telemetria industrial para PMEs, desenvolvida em Python e Django.
+Este documento reúne as histórias de usuário com cenários de validação em BDD (Gherkin) e parte do que o projeto já possui: site institucional publicado, banco SQLite e o sistema de usuários do Django instalado.
+
+Nesta entrega, o foco é a **infraestrutura inicial da aplicação**: cadastro de conta, login e logout, e um canal de contato que grava no banco de dados. As funcionalidades de telemetria e de valor financeiro ficam para a Entrega 04.
 
 ## Personas
 
@@ -14,19 +17,276 @@ Reúne as histórias de usuário com cenários de validação em BDD (Gherkin).
 
 | ID | Título | Persona | Épico | Status |
 |---|---|---|---|---|
-| US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Implementada |
-| US11 | Autenticação e controle de acesso | Ana | 1 | Backlog |
-| US12 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Implementada |
-| US13 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Implementada |
-| US14 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Backlog |
-| US15 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
-| US16 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
+| US11 | Criar conta de usuário | Marcos | 1 | Entrega 03 |
+| US12 | Entrar e sair da plataforma (login e logout) | Ana | 1 | Entrega 03 |
+| US13 | Enviar mensagem pelo Fale Conosco | Marcos | 1 | Entrega 03 |
+| US14 | Conhecer a Nexora pelo site institucional | Marcos | 1 | Já existente (Entrega 02) |
+| US15 | Perfis de acesso e isolamento de dados por empresa | Ana | 1 | Backlog |
+| US16 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Backlog |
+| US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Backlog |
+| US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Backlog |
+| US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Backlog |
+| US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
+| US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
+
+---
+
+# Histórias da Entrega 03
+
+## US11: Criar conta de usuário
+
+**Persona:** Marcos | **Épico 1:** Fundamentação Técnica Django
+
+**História:** Como Proprietário (Marcos), quero criar uma conta na plataforma com nome de usuário, e-mail e senha, para ter acesso próprio e seguro ao sistema.
+
+```gherkin
+Funcionalidade: Cadastro de conta de usuário
+
+  Cenário: Criar conta com dados válidos
+    Dado que o visitante acessa a página de cadastro
+    Quando informa nome de usuário, e-mail, senha e confirmação de senha válidos
+    E confirma o cadastro
+    Então a conta é criada
+    E a senha é armazenada de forma criptografada (hash) no banco de dados
+    E o sistema o direciona para a tela de login com uma mensagem de sucesso
+
+  Cenário: Senhas diferentes
+    Dado que o visitante está na página de cadastro
+    Quando informa uma senha e uma confirmação diferentes
+    Então o sistema exibe uma mensagem de erro
+    E nenhuma conta é criada
+
+  Cenário: Senha fraca
+    Dado que o visitante está na página de cadastro
+    Quando informa uma senha muito curta, somente numérica ou muito comum
+    Então o sistema exibe a regra de senha que não foi atendida
+    E nenhuma conta é criada
+
+  Cenário: Nome de usuário já existente
+    Dado que já existe uma conta com o nome de usuário "marcos"
+    Quando outro visitante tenta se cadastrar com o nome "marcos"
+    Então o sistema exibe uma mensagem informando que o nome já está em uso
+    E nenhuma conta é criada
+```
+
+---
+
+## US12: Entrar e sair da plataforma (login e logout)
+
+**Persona:** Ana | **Épico 1:** Fundamentação Técnica Django
+
+**História:** Como Diretora Financeira (Ana), quero entrar na plataforma com meu usuário e senha e sair quando terminar, para que somente pessoas autorizadas vejam os dados da minha empresa.
+
+```gherkin
+Funcionalidade: Login e logout
+
+  Contexto:
+    Dado que existe um usuário cadastrado
+
+  Cenário: Login com credenciais válidas
+    Dado que o usuário está na tela de login
+    Quando informa nome de usuário e senha corretos
+    Então o sistema o autentica
+    E o direciona para o painel inicial, que exibe o seu nome de usuário
+
+  Cenário: Login com credenciais inválidas
+    Dado que o usuário está na tela de login
+    Quando informa uma senha incorreta
+    Então o sistema exibe uma mensagem de erro
+    E nenhuma sessão é criada
+
+  Cenário: Acessar página restrita sem estar logado
+    Dado que o visitante não está autenticado
+    Quando tenta acessar o painel inicial pelo endereço direto
+    Então o sistema o redireciona para a tela de login
+
+  Cenário: Sair da plataforma
+    Dado que o usuário está autenticado
+    Quando clica em "Sair"
+    Então a sessão é encerrada
+    E o painel inicial volta a exigir login
+```
+
+---
+
+## US13: Enviar mensagem pelo Fale Conosco
+
+**Persona:** Marcos | **Épico 1:** Fundamentação Técnica Django
+
+**História:** Como Proprietário (Marcos) interessado na plataforma, quero enviar uma mensagem pelo Fale Conosco, para entrar em contato com a equipe da Nexora e ter certeza de que ela foi recebida.
+
+```gherkin
+Funcionalidade: Fale Conosco
+
+  Cenário: Enviar mensagem com dados válidos
+    Dado que o visitante está na página "Fale Conosco"
+    Quando preenche nome, e-mail e mensagem
+    E clica em "Enviar Mensagem"
+    Então a mensagem é salva no banco de dados
+    E o sistema exibe uma confirmação de envio
+
+  Cenário: Campo obrigatório em branco
+    Dado que o visitante está na página "Fale Conosco"
+    Quando tenta enviar sem preencher a mensagem
+    Então o sistema exibe um aviso de campo obrigatório
+    E nada é salvo
+
+  Cenário: E-mail inválido
+    Dado que o visitante está na página "Fale Conosco"
+    Quando informa um e-mail em formato inválido
+    Então o sistema exibe uma mensagem de erro
+    E nada é salvo
+
+  Cenário: Equipe consulta as mensagens recebidas
+    Dado que existem mensagens salvas
+    Quando um administrador acessa o Django Admin
+    Então vê a lista de mensagens com nome, e-mail, texto e data de envio
+```
+
+---
+
+# Histórias já existentes
+
+## US14: Conhecer a Nexora pelo site institucional
+
+**Persona:** Marcos | **Épico 1:** Fundamentação Técnica Django
+
+**História:** Como Proprietário (Marcos), quero navegar pelo site da Nexora, para entender quem é a empresa e o que ela oferece antes de criar uma conta.
+
+**Situação:** já implementada e publicada na Entrega 02 (páginas inicial, Quem Somos, O que Fazemos e Fale Conosco).
+
+```gherkin
+Funcionalidade: Site institucional
+
+  Cenário: Ver o sumário na página inicial
+    Dado que o visitante acessa a página inicial
+    Então vê o sumário com links para "Quem Somos Nós", "O que Fazemos" e "Fale Conosco"
+
+  Cenário: Conhecer a empresa
+    Dado que o visitante está na página inicial
+    Quando clica em "Quem Somos Nós"
+    Então vê o propósito da Nexora
+
+  Cenário: Conhecer os serviços
+    Dado que o visitante está na página inicial
+    Quando clica em "O que Fazemos"
+    Então vê a descrição dos serviços da plataforma
+
+  Cenário: Voltar ao sumário
+    Dado que o visitante está em uma página interna
+    Quando clica em "Voltar ao Sumário"
+    Então retorna à página inicial
+```
+
+---
+
+# Backlog (Entrega 04 em diante)
+
+## US15: Perfis de acesso e isolamento de dados por empresa
+
+**Persona:** Ana | **Épico 1:** Fundamentação Técnica Django
+
+**Depende de:** US12
+
+**História:** Como Diretora Financeira (Ana), quero que cada usuário acesse apenas os dados da sua própria empresa e conforme o seu perfil, para garantir a confidencialidade dos dados financeiros e de compliance.
+
+```gherkin
+Funcionalidade: Perfis e isolamento de dados
+
+  Cenário: Isolamento de dados entre empresas
+    Dado que o usuário pertence à Empresa A
+    Quando tenta acessar dados da Empresa B por endereço direto
+    Então o sistema retorna HTTP 403 ou 404
+    E nenhum dado da Empresa B é exibido
+
+  Cenário: Acesso restrito por perfil
+    Dado que o usuário tem perfil "Gerente de Manutenção"
+    Quando tenta acessar a tela de parâmetros financeiros
+    Então o sistema retorna HTTP 403
+```
+
+---
+
+## US16: Cadastro de dispositivos e sensores pela interface web
+
+**Persona:** Carlos | **Épico 1:** Fundamentação Técnica Django
+
+**Depende de:** US12
+
+**História:** Como Gerente de Manutenção (Carlos), quero cadastrar e editar máquinas e sensores em uma tela simples, para conectar novos equipamentos sem depender de suporte técnico.
+
+```gherkin
+Funcionalidade: Cadastro de dispositivos e sensores
+
+  Contexto:
+    Dado que o Gerente de Manutenção está autenticado
+    E existem tipos de sensor cadastrados
+
+  Cenário: Cadastrar um novo dispositivo
+    Quando acessa a tela de cadastro de dispositivos
+    E preenche nome da máquina, localização, tipo de sensor e limite de consumo (kWh)
+    E, opcionalmente, informa o custo estimado do reparo preventivo
+    E confirma o cadastro
+    Então o dispositivo aparece na lista de dispositivos da empresa
+
+  Cenário: Validar campos obrigatórios
+    Quando tenta salvar o formulário sem informar o nome da máquina
+    Então o sistema exibe a mensagem "Este campo é obrigatório"
+    E o dispositivo não é criado
+
+  Cenário: Editar limite de consumo
+    Dado que existe o dispositivo "Prensa 02"
+    Quando altera o limite de consumo e salva
+    Então o novo limite passa a ser usado no cálculo de anomalias
+```
+
+---
+
+## US17: Configuração de tarifa de energia e parâmetros financeiros
+
+**Persona:** Marcos | **Épico 2:** Tradução Financeira e Impacto ESG
+
+**Depende de:** US12
+
+**História:** Como Proprietário (Marcos), quero informar a tarifa de energia da minha concessionária e o custo de hora parada, para que os cálculos em Reais reflitam a realidade da minha fábrica.
+
+```gherkin
+Funcionalidade: Configuração de parâmetros financeiros
+
+  Contexto:
+    Dado que o Proprietário está autenticado
+
+  Cenário: Salvar tarifa de energia
+    Quando acessa a tela de parâmetros financeiros
+    E informa tarifa de ponta, tarifa fora de ponta e custo por hora parada
+    E confirma
+    Então os valores são salvos para a empresa
+    E o sistema exibe uma mensagem de sucesso
+
+  Cenário: Rejeitar valores inválidos
+    Quando informa uma tarifa negativa ou igual a zero
+    Então o sistema exibe uma mensagem de erro de validação
+    E os valores anteriores são mantidos
+
+  Cenário: Usar valores padrão
+    Dado que a empresa ainda não configurou os parâmetros
+    Quando abre a tela pela primeira vez
+    Então os campos aparecem pré-preenchidos com valores padrão de referência
+    E podem ser editados
+
+  Cenário: Refletir a nova tarifa nos cálculos
+    Dado que a tarifa foi alterada
+    Quando consulta o custo de uma anomalia
+    Então o valor em Reais é recalculado com a nova tarifa
+```
 
 ---
 
 ## US03: Tradutor de anomalias em custo financeiro (R$)
 
 **Persona:** Marcos | **Épico 2:** Tradução Financeira e Impacto ESG
+
+**Depende de:** US16 e US17
 
 **História:** Como Proprietário (Marcos), quero visualizar no dashboard a conversão de leituras anômalas em custo mensal em Reais, para entender o impacto das falhas na lucratividade da fábrica.
 
@@ -57,112 +317,7 @@ Funcionalidade: Tradução de anomalias em custo financeiro
 
 ---
 
-## US11: Autenticação e controle de acesso por perfil e empresa
-
-**Persona:** Ana | **Épico 1:** Fundamentação Técnica Django
-
-**História:** Como Diretora Financeira (Ana), quero que cada usuário acesse apenas os dados da sua própria empresa e conforme o seu perfil, para garantir a confidencialidade dos dados financeiros e de compliance.
-
-```gherkin
-Funcionalidade: Autenticação e controle de acesso
-
-  Cenário: Login com credenciais válidas
-    Dado que existe um usuário cadastrado com perfil "Financeiro"
-    Quando ele informa e-mail e senha corretos na tela de login
-    Então o sistema o autentica e o direciona ao seu painel
-
-  Cenário: Login com credenciais inválidas
-    Dado que o usuário informa uma senha incorreta
-    Quando ele tenta entrar
-    Então o sistema exibe uma mensagem de erro
-    E não cria sessão autenticada
-
-  Cenário: Isolamento de dados entre empresas
-    Dado que o usuário pertence à Empresa A
-    Quando ele tenta acessar dados da Empresa B por URL direta
-    Então o sistema retorna HTTP 403 ou 404
-    E nenhum dado da Empresa B é exibido
-
-  Cenário: Acesso restrito por perfil
-    Dado que o usuário tem perfil "Gerente de Manutenção"
-    Quando ele tenta acessar a tela de parâmetros financeiros
-    Então o sistema retorna HTTP 403
-```
-
----
-
-## US12: Cadastro de dispositivos e sensores pela interface web
-
-**Persona:** Carlos | **Épico 1:** Fundamentação Técnica Django
-
-**História:** Como Gerente de Manutenção (Carlos), quero cadastrar e editar máquinas e sensores em uma tela simples, para conectar novos equipamentos sem depender de suporte técnico.
-
-```gherkin
-Funcionalidade: Cadastro de dispositivos e sensores
-
-  Contexto:
-    Dado que o sistema possui uma empresa cadastrada
-    E existem tipos de sensor cadastrados
-
-  Cenário: Cadastrar um novo dispositivo
-    Quando o Gerente de Manutenção acessa a tela de cadastro de dispositivos
-    E preenche nome da máquina, localização, tipo de sensor e limite de consumo (kWh)
-    E, opcionalmente, informa o custo estimado do reparo preventivo
-    E confirma o cadastro
-    Então o dispositivo aparece na lista de dispositivos da empresa
-
-  Cenário: Validar campos obrigatórios
-    Quando o Gerente de Manutenção tenta salvar o formulário sem informar o nome da máquina
-    Então o sistema exibe a mensagem "Este campo é obrigatório"
-    E o dispositivo não é criado
-
-  Cenário: Editar limite de consumo
-    Dado que existe o dispositivo "Prensa 02"
-    Quando o Gerente de Manutenção altera o limite de consumo e salva
-    Então o novo limite passa a ser usado no cálculo de anomalias
-```
-
----
-
-## US13: Configuração de tarifa de energia e parâmetros financeiros
-
-**Persona:** Marcos | **Épico 2:** Tradução Financeira e Impacto ESG
-
-**História:** Como Proprietário (Marcos), quero informar a tarifa de energia da minha concessionária e o custo de hora parada, para que os cálculos em Reais reflitam a realidade da minha fábrica.
-
-```gherkin
-Funcionalidade: Configuração de parâmetros financeiros
-
-  Contexto:
-    Dado que o sistema possui uma empresa cadastrada
-
-  Cenário: Salvar tarifa de energia
-    Quando o Proprietário acessa a tela de parâmetros financeiros
-    E informa tarifa de ponta, tarifa fora de ponta e custo por hora parada
-    E confirma
-    Então os valores são salvos para a empresa
-    E o sistema exibe uma mensagem de sucesso
-
-  Cenário: Rejeitar valores inválidos
-    Quando o Proprietário informa uma tarifa negativa ou igual a zero
-    Então o sistema exibe uma mensagem de erro de validação
-    E os valores anteriores são mantidos
-
-  Cenário: Usar valores padrão
-    Dado que a empresa ainda não configurou os parâmetros
-    Quando o Proprietário abre a tela pela primeira vez
-    Então os campos aparecem pré-preenchidos com valores padrão de referência
-    E podem ser editados
-
-  Cenário: Refletir a nova tarifa nos cálculos
-    Dado que a tarifa foi alterada
-    Quando o Proprietário consulta o custo de uma anomalia
-    Então o valor em Reais é recalculado com a nova tarifa
-```
-
----
-
-## US14: Ciclo de vida da Ordem de Serviço corretiva
+## US18: Ciclo de vida da Ordem de Serviço corretiva
 
 **Persona:** Carlos | **Épico 3:** Diagnóstico Causal e Alertas
 
@@ -197,7 +352,7 @@ Funcionalidade: Ciclo de vida da Ordem de Serviço
 
 ---
 
-## US15: Notificações consolidadas e priorizadas
+## US19: Notificações consolidadas e priorizadas
 
 **Persona:** Carlos | **Épico 3:** Diagnóstico Causal e Alertas
 
@@ -225,7 +380,7 @@ Funcionalidade: Notificações consolidadas
 
 ---
 
-## US16: Painel executivo de resultados em Reais
+## US20: Painel executivo de resultados em Reais
 
 **Persona:** Marcos | **Épico 4:** Maturidade Operacional e Visão Executiva
 
@@ -236,17 +391,17 @@ Funcionalidade: Painel executivo
 
   Cenário: Exibir resumo do mês
     Dado que o Proprietário está autenticado
-    Quando ele acessa a tela inicial
+    Quando acessa a tela inicial
     Então vê cartões com custo evitado (R$), economia de energia (R$), CO2e evitado (kg) e nota de maturidade
 
   Cenário: Comparar com o mês anterior
     Dado que existem dados de dois meses consecutivos
-    Quando o Proprietário visualiza o painel
+    Quando visualiza o painel
     Então cada cartão mostra a variação percentual em relação ao mês anterior
 
   Cenário: Painel sem dados
     Dado que a empresa não possui leituras no mês
-    Quando o Proprietário acessa o painel
+    Quando acessa o painel
     Então o sistema exibe uma mensagem orientando a cadastrar sensores
 ```
 
@@ -258,29 +413,29 @@ Funcionalidade: Painel executivo
 
 Histórias selecionadas para implementação nesta entrega, no formato post-it.
 
-### US12: Cadastro de dispositivos e sensores pela web
-
-| | |
-|---|---|
-| **Como** | Gerente de Manutenção (Carlos) |
-| **Quero** | cadastrar e editar máquinas e sensores em uma tela simples |
-| **Para** | conectar novos equipamentos sem depender de suporte técnico |
-| **Critério de pronto** | Formulário valida os campos, o dispositivo salvo aparece na lista e pode ser editado |
-
-### US13: Configuração de tarifa de energia e parâmetros financeiros
+### US11: Criar conta de usuário
 
 | | |
 |---|---|
 | **Como** | Proprietário (Marcos) |
-| **Quero** | informar a tarifa de energia e o custo de hora parada |
-| **Para** | que os cálculos em Reais reflitam a realidade da minha fábrica |
-| **Critério de pronto** | Valores são validados e salvos por empresa, vêm pré-preenchidos com valores padrão de referência e a tarifa alimenta o cálculo de custo |
+| **Quero** | criar uma conta com nome de usuário, e-mail e senha |
+| **Para** | ter acesso próprio e seguro ao sistema |
+| **Critério de pronto** | Cadastro valida os dados (senhas iguais, senha forte, usuário único), salva a conta no banco com a senha criptografada e leva o usuário ao login |
 
-### US03: Tradutor de anomalias em custo financeiro (R$)
+### US12: Entrar e sair da plataforma (login e logout)
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira (Ana) |
+| **Quero** | entrar com meu usuário e senha e sair quando terminar |
+| **Para** | que somente pessoas autorizadas vejam os dados da minha empresa |
+| **Critério de pronto** | Login válido leva ao painel inicial, login inválido mostra erro, o painel redireciona quem não está logado e o logout encerra a sessão |
+
+### US13: Enviar mensagem pelo Fale Conosco
 
 | | |
 |---|---|
 | **Como** | Proprietário (Marcos) |
-| **Quero** | ver no dashboard o custo mensal em Reais de uma anomalia |
-| **Para** | entender o impacto direto das falhas na lucratividade |
-| **Critério de pronto** | Dashboard mostra "custo adicional estimado de R$ X.XXX/mês" calculado com a tarifa configurada e, quando há custo de reparo cadastrado, o prazo de payback do reparo |
+| **Quero** | enviar uma mensagem pelo Fale Conosco |
+| **Para** | falar com a equipe da Nexora e ter certeza de que fui ouvido |
+| **Critério de pronto** | A mensagem válida é salva no banco e confirmada na tela, dados inválidos são rejeitados e a equipe vê as mensagens no Django Admin |

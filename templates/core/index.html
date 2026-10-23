@@ -9,12 +9,16 @@
 </head>
 <body class="home-page">
     <header class="site-header home-hero">
-        <a class="action-link home-login-link" href="{% url 'login' %}">
+        <a class="action-link home-login-link" href="{% if request.user.is_authenticated %}{% url 'painel' %}{% else %}{% url 'login' %}{% endif %}">
             <svg class="home-login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                 <circle cx="12" cy="8" r="4"></circle>
                 <path d="M4.5 21a7.5 7.5 0 0 1 15 0"></path>
             </svg>
-            <span>Fazer Login</span>
+            {% if request.user.is_authenticated %}
+                <span>Acessar painel</span>
+            {% else %}
+                <span>Fazer Login</span>
+            {% endif %}
         </a>
         <p class="home-eyebrow">NEXORA · IoT MANAGER</p>
         <h1>Conectando o que importa</h1>

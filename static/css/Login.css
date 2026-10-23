@@ -96,6 +96,20 @@ input[type="password"]:focus {
     box-shadow: 0 0 0 4px rgba(155, 20, 197, 0.12);
 }
 
+.login-error,
+.login-success {
+    margin: 0 0 16px;
+    font-weight: 600;
+}
+
+.login-error {
+    color: #a12626;
+}
+
+.login-success {
+    color: #1d6a3a;
+}
+
 .botoes-login {
     display: flex;
     flex-direction: column;

@@ -15,12 +15,25 @@
     </header>
     <main class="page-main">
         <form class="page-card" method="POST">
+            {% csrf_token %}
+            {% if request.GET.next %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+            {% endif %}
+            {% if messages %}
+                {% for message in messages %}
+                    <p class="login-success" role="status">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
 
             <label>Digite o email ou nome de usuário</label><br>
             <input type="text" name="nome_usuario" required><br><br>
 
             <label>Digite a Senha</label><br>
             <input type="password" name="senha_usuario" required><br><br>
+
+            {% if erro_login %}
+                <p class="login-error" role="alert">{{ erro_login }}</p>
+            {% endif %}<br><br>
 
             <div class="botoes-login">
                 <button type="submit" class="btn-entrar">Entrar</button>

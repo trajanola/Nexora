@@ -1,0 +1,13 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Tarifa de energia{% endblock %}
+{% block cabecalho %}Tarifa de energia{% endblock %}
+{% block subtitulo %}Usada para converter o consumo excedente em Reais.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar tarifa</button>
+    </form>
+</section>
+{% endblock %}

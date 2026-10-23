@@ -1,0 +1,24 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Excluir conta{% endblock %}
+{% block cabecalho %}Excluir conta{% endblock %}
+{% block subtitulo %}Confirme sua identidade antes de continuar.{% endblock %}
+{% block conteudo %}
+<section class="page-card delete-account-card">
+    <h2>Esta ação é permanente</h2>
+    <p>Ao excluir sua conta, também serão apagados todos os dispositivos, leituras e configurações de tarifa associados a ela.</p>
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        <p>
+            <label for="senha_atual">Digite sua senha atual para confirmar:</label>
+            <input id="senha_atual" name="senha_atual" type="password" autocomplete="current-password" required>
+        </p>
+        {% if erro_senha %}
+            <p class="delete-account-error" role="alert">{{ erro_senha }}</p>
+        {% endif %}
+        <div class="delete-account-actions">
+            <a class="action-link" href="{% url 'painel' %}">Cancelar</a>
+            <button class="danger-button" type="submit">Excluir minha conta</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

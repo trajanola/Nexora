@@ -1,0 +1,13 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Novo dispositivo{% endblock %}
+{% block cabecalho %}Novo dispositivo{% endblock %}
+{% block subtitulo %}Informe o equipamento e o limite de consumo aceitável.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar dispositivo</button>
+    </form>
+</section>
+{% endblock %}

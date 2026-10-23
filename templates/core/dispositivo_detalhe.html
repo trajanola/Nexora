@@ -1,0 +1,40 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}{{ dispositivo.nome }}{% endblock %}
+{% block cabecalho %}{{ dispositivo.nome }}{% endblock %}
+{% block subtitulo %}{{ dispositivo.localizacao|default:"Sem localização informada" }} · limite de {{ dispositivo.limite_kwh|floatformat:2 }} kWh{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <div class="topo-acoes">
+        <strong>Últimas leituras</strong>
+        <a href="{% url 'dispositivo_lista' %}">&larr; Voltar à lista</a>
+    </div>
+    {% if leituras %}
+        <div class="tabela-wrap">
+            <table class="tabela">
+                <thead><tr><th>Data e hora</th><th>Consumo (kWh)</th></tr></thead>
+                <tbody>
+                    {% for leitura in leituras %}
+                        <tr>
+                            <td>{{ leitura.registrado_em|date:"d/m/Y H:i" }}</td>
+                            <td{% if leitura.valor_kwh > dispositivo.limite_kwh %} class="acima"{% endif %}>{{ leitura.valor_kwh|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhuma leitura recebida ainda.</p>
+    {% endif %}
+</section>
+
+<section class="page-card device-api-card">
+    <h2>Enviar leituras pelo equipamento</h2>
+    <p>Token deste dispositivo (não compartilhe):</p>
+    <code class="codigo">{{ dispositivo.token }}</code>
+    <p>Exemplo de envio:</p>
+    <code class="codigo">curl -X POST {{ request.scheme }}://{{ request.get_host }}{% url 'api_leitura' %} \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: {{ dispositivo.token }}" \
+  -d '{"valor_kwh": 42.7}'</code>
+</section>
+{% endblock %}

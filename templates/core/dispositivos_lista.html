@@ -1,0 +1,31 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Dispositivos{% endblock %}
+{% block cabecalho %}Meus dispositivos{% endblock %}
+{% block subtitulo %}Máquinas e sensores conectados à sua conta.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <div class="topo-acoes">
+        <strong>{{ dispositivos|length }} dispositivo{{ dispositivos|length|pluralize }}</strong>
+        <a class="action-link" href="{% url 'dispositivo_novo' %}">+ Novo dispositivo</a>
+    </div>
+    {% if dispositivos %}
+        <div class="tabela-wrap">
+            <table class="tabela">
+                <thead><tr><th>Nome</th><th>Localização</th><th>Limite (kWh)</th><th>Histórico</th></tr></thead>
+                <tbody>
+                    {% for dispositivo in dispositivos %}
+                        <tr>
+                            <td>{{ dispositivo.nome }}</td>
+                            <td>{{ dispositivo.localizacao|default:"—" }}</td>
+                            <td>{{ dispositivo.limite_kwh|floatformat:2 }}</td>
+                            <td><a href="{% url 'dispositivo_detalhe' dispositivo.pk %}"><strong>Ver leituras</strong></a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Você ainda não cadastrou nenhum dispositivo.</p>
+    {% endif %}
+</section>
+{% endblock %}

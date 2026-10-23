@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Nexora{% endblock %} - Nexora</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/painel.css' %}">
+</head>
+<body>
+    <header class="site-header app-header">
+        <h1>{% block cabecalho %}Nexora{% endblock %}</h1>
+        <p>{% block subtitulo %}{% endblock %}</p>
+        <nav class="app-nav" aria-label="Navegação da plataforma">
+            <a class="action-link" href="{% url 'painel' %}">Painel</a>
+            <a class="action-link" href="{% url 'dispositivo_lista' %}">Dispositivos</a>
+            <a class="action-link" href="{% url 'parametros' %}">Tarifa</a>
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit">Sair</button>
+            </form>
+            <a class="action-link account-delete-link" href="{% url 'excluir_conta' %}">Excluir conta</a>
+        </nav>
+    </header>
+    <main class="page-main app-main">
+        {% if messages %}
+            <ul class="mensagens">
+                {% for mensagem in messages %}
+                    <li class="{{ mensagem.tags }}">{{ mensagem }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block conteudo %}{% endblock %}
+    </main>
+</body>
+</html>

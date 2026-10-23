@@ -3,7 +3,7 @@
 Plataforma de telemetria industrial para PMEs, desenvolvida em Python e Django.
 Este documento reúne as histórias de usuário com cenários de validação em BDD (Gherkin) e parte do que o projeto já possui: site institucional publicado, banco SQLite e o sistema de usuários do Django instalado.
 
-Nesta entrega, o foco é a **infraestrutura inicial da aplicação**: cadastro de conta, login e logout, e um canal de contato que grava no banco de dados. As funcionalidades de telemetria e de valor financeiro ficam para a Entrega 04.
+O documento registra as histórias planejadas e implementadas. Além da infraestrutura inicial, a Entrega 03 inclui o cadastro de dispositivos, recebimento de leituras e acompanhamento do custo mensal do consumo excedente.
 
 ## Personas
 
@@ -28,6 +28,9 @@ Nesta entrega, o foco é a **infraestrutura inicial da aplicação**: cadastro d
 | US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Backlog |
 | US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
 | US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
+| US21 | Cadastro e isolamento de dispositivos | Carlos | 1 | Implementada (Entrega 03) |
+| US22 | Envio e consulta de leituras de consumo | Carlos | 1 | Implementada (Entrega 03) |
+| US23 | Tarifa e custo mensal de anomalias | Marcos | 2 | Implementada (Entrega 03) |
 
 ---
 
@@ -439,3 +442,30 @@ Histórias selecionadas para implementação nesta entrega, no formato post-it.
 | **Quero** | enviar uma mensagem pelo Fale Conosco |
 | **Para** | falar com a equipe da Nexora e ter certeza de que fui ouvido |
 | **Critério de pronto** | A mensagem válida é salva no banco e confirmada na tela, dados inválidos são rejeitados e a equipe vê as mensagens no Django Admin |
+
+### US21: Cadastrar e listar dispositivos
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | cadastrar dispositivos com nome, localização e limite de consumo |
+| **Para** | acompanhar os equipamentos associados à minha conta |
+| **Critério de pronto** | Usuários autenticados podem cadastrar e listar seus dispositivos; cada dispositivo fica associado ao usuário que o criou e não pode ser consultado por outra conta |
+
+### US22: Enviar e consultar leituras de consumo
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | receber leituras de consumo dos dispositivos e consultar seu histórico |
+| **Para** | acompanhar o consumo e identificar leituras acima do limite |
+| **Critério de pronto** | A API recebe leituras JSON mediante o token do dispositivo, rejeita tokens ou valores inválidos e exibe as leituras mais recentes no detalhe do dispositivo |
+
+### US23: Configurar tarifa e acompanhar custo de anomalias
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | configurar a tarifa de energia e ver o custo do consumo acima do limite |
+| **Para** | entender o impacto financeiro das anomalias no mês atual |
+| **Critério de pronto** | Cada usuário pode salvar sua tarifa; o painel soma o consumo excedente das leituras do mês, converte o excedente em custo estimado e informa quando não há custo adicional |

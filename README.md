@@ -261,7 +261,13 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 ### ✅ Histórias Implementadas
 
+- **US11 — Criar conta:** cadastro com nome de usuário, e-mail e senha; o nome de usuário é único e a senha é armazenada com hash pelo Django.
+- **US12 — Entrar e sair da plataforma:** autenticação, redirecionamento ao painel após login, proteção das áreas privadas e encerramento de sessão via logout.
+- **US21 — Cadastrar e listar dispositivos:** cadastro de dispositivos com localização e limite de consumo, com acesso restrito aos dispositivos do próprio usuário.
+- **US22 — Registrar e consultar leituras:** recebimento de leituras pela API autenticada com token do dispositivo e consulta do histórico recente.
+- **US23 — Acompanhar custos de anomalias:** configuração de tarifa de energia e painel mensal que calcula o custo do consumo acima do limite dos dispositivos.
 
+> **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
 
 ### 📋 Backlog (Jira)
 

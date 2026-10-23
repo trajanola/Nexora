@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 from django.http import HttpResponse
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.views import View
 
 def home(request):
@@ -48,6 +48,12 @@ class Logar(View):
         else:
             return HttpResponse("falha no login, usuario ou senha inválidos")
 
+class Logout(View):
+    def get(self, request):
+        return render(request, 'core/logout.html')
 
+    def post(self, request):
+        auth_logout(request)
+        return HttpResponse("Logout realizado com sucesso")
 
 

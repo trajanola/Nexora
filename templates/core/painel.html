@@ -1,0 +1,28 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Painel{% endblock %}
+{% block cabecalho %}Olá, {{ request.user.username }}{% endblock %}
+{% block subtitulo %}Resumo do mês atual.{% endblock %}
+{% block conteudo %}
+<div class="cartoes">
+    <div class="cartao"><span>Dispositivos</span><strong>{{ resumo.itens|length }}</strong></div>
+    <div class="cartao"><span>Com anomalia no mês</span><strong>{{ resumo.com_anomalia|length }}</strong></div>
+    <div class="cartao"><span>Custo adicional estimado</span><strong>R$ {{ resumo.custo_total|floatformat:2 }}</strong></div>
+    <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
+</div>
+
+<section class="page-card">
+    {% if not resumo.itens %}
+        <p class="vazio">Você ainda não tem dispositivos. <a href="{% url 'dispositivo_novo' %}"><strong>Cadastre o primeiro</strong></a> para começar a acompanhar o consumo.</p>
+    {% elif resumo.com_anomalia %}
+        {% for item in resumo.com_anomalia %}
+            <div class="alerta">
+                <strong>{{ item.dispositivo.nome }}</strong><br>
+                Atenção: esta anomalia gera um custo adicional estimado de <strong>R$ {{ item.custo|floatformat:2 }}</strong> neste mês
+                ({{ item.excedente_kwh|floatformat:2 }} kWh acima do limite em {{ item.qtd_anomalias }} leitura{{ item.qtd_anomalias|pluralize }}).
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="ok-box">Todos os dispositivos estão dentro do limite: não há custos adicionais por anomalias neste mês.</div>
+    {% endif %}
+</section>
+{% endblock %}

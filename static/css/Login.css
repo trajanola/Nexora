@@ -1,29 +1,29 @@
 body {
     text-align: center;
-    background-image:
-        radial-gradient(circle at 18% 22%, rgba(213, 120, 255, 0.16), transparent 34%),
-        radial-gradient(circle at 82% 78%, rgba(107, 77, 255, 0.14), transparent 38%),
-        linear-gradient(135deg, #120913 0%, #2b0a2c 22%, #5d1772 58%, #9b14c5 100%);
-    background-size: 150% 150%, 150% 150%, 180% 180%;
-    animation: gradientShift 12s ease infinite;
+    background: #f8f8fb;
     color: #252033;
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
     margin: 0;
-    padding: 30px 20px;
+    padding: 0;
     min-height: 100vh;
     box-sizing: border-box;
-}
-
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 0%, 100% 100%, 0% 50%; }
-    50% { background-position: 100% 0%, 0% 100%, 100% 50%; }
 }
 
 header {
     text-align: center;
     color: #f4f7fb;
-    padding: 12px 20px;
+    padding: 30px 20px 60px;
+}
+
+header.site-header {
+    background: linear-gradient(
+        180deg,
+        #1a0d1e 0%,
+        #35103f 48%,
+        #54145f 76%,
+        #f8f8fb 100%
+    );
 }
 
 label {
@@ -63,18 +63,6 @@ h1 {
     text-align: left;
 }
 
-.link-voltar a {
-    display: inline-block;
-    padding: 9px 14px;
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    color: #eaedef;
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
-}
-
 form {
     width: min(420px, calc(100% - 48px));
     box-sizing: border-box;
@@ -85,14 +73,6 @@ form {
     border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55);
     text-align: center;
-}
-
-.link-voltar a:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.4);
-    color: #ffffff;
-    text-decoration: underline;
-    transform: translateX(-2px);
 }
 
 input[type="text"],
@@ -125,6 +105,8 @@ input[type="password"]:focus {
 
 .btn-entrar,
 .btn-cadastro {
+    width: 100%;
+    min-height: 48px;
     border: none;
     border-radius: 10px;
     padding: 12px 18px;
@@ -163,9 +145,45 @@ input[type="password"]:focus {
     transform: translateY(-1px);
 }
 
+.login-help {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 10;
+    display: grid;
+    width: 56px;
+    height: 56px;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5d1772 0%, #8a1ca5 55%, #9b14c5 100%);
+    box-shadow: 0 6px 18px rgba(37, 8, 48, 0.3);
+    color: #ffffff;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+}
+
+.login-help svg {
+    width: 27px;
+    height: 27px;
+}
+
+.login-help:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(37, 8, 48, 0.38);
+    filter: brightness(1.1);
+}
+
+.login-help:focus-visible {
+    outline: 3px solid rgba(226, 168, 245, 0.9);
+    outline-offset: 4px;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    body,
     h1 {
         animation: none;
+    }
+
+    .login-help {
+        transition: none;
     }
 }

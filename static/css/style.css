@@ -57,20 +57,30 @@ a {
 .link-voltar a {
     display: inline-flex;
     align-items: center;
-    min-height: 40px;
-    padding: 7px 14px;
-    color: #f4f7fb;
-    border: 1px solid rgba(255, 255, 255, 0.25);
+    min-height: 42px;
+    padding: 9px 17px;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.08);
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background: linear-gradient(135deg, #5d1772 0%, #8a1ca5 55%, #9b14c5 100%);
+    box-shadow: 0 5px 16px rgba(37, 8, 48, 0.24);
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
 }
 
 .link-voltar a:hover,
 .link-voltar a:focus-visible {
     color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.55);
+    background: linear-gradient(135deg, #70208a 0%, #9b14c5 55%, #b52cdb 100%);
+    box-shadow: 0 8px 22px rgba(37, 8, 48, 0.32);
+    transform: translateX(-2px);
+}
+
+.link-voltar a:focus-visible {
+    outline: 3px solid rgba(226, 168, 245, 0.8);
+    outline-offset: 3px;
 }
 
 .page-main {
@@ -220,11 +230,64 @@ input[type="submit"]:hover {
     margin: 0;
 }
 
+.info-hero {
+    background: linear-gradient(
+        180deg,
+        #1a0d1e 0%,
+        #35103f 48%,
+        #54145f 76%,
+        #f4f7fb 100%
+    );
+}
+
+.info-hero h1 {
+    animation: info-content-in 700ms ease-out both;
+}
+
+.info-main {
+    max-width: 860px;
+    margin-top: 18px;
+}
+
+.info-card {
+    border-top-color: var(--nexora-purple);
+    box-shadow: 0 12px 34px rgba(26, 13, 30, 0.09);
+    animation: info-content-in 800ms 100ms ease-out both;
+}
+
+.info-card > p {
+    font-size: clamp(1.02rem, 2vw, 1.12rem);
+    line-height: 1.9;
+}
+
+.info-card strong {
+    color: #4c145f;
+    font-weight: 700;
+}
+
+.info-card em {
+    color: var(--nexora-purple);
+    font-style: normal;
+    font-weight: 600;
+}
+
+@keyframes info-content-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .home-page {
     background: #f8f8fb;
 }
 
 .home-hero {
+    position: relative;
     padding: clamp(56px, 10vw, 104px) 20px clamp(48px, 8vw, 76px);
     color: #f8f5fb;
     background: linear-gradient(
@@ -341,9 +404,30 @@ input[type="submit"]:hover {
 }
 
 .home-login-link {
+    position: absolute;
+    top: 24px;
+    right: max(20px, calc((100vw - 1080px) / 2));
     gap: 9px;
-    min-height: 48px;
-    padding: 11px 24px;
+    min-height: 42px;
+    padding: 9px 17px;
+    border: 1px solid rgba(255, 255, 255, 0.36);
+    background: linear-gradient(135deg, rgba(93, 23, 114, 0.72), rgba(155, 20, 197, 0.58));
+    box-shadow: 0 5px 16px rgba(15, 5, 22, 0.2);
+    color: #ffffff;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.home-login-link:hover,
+.home-login-link:focus-visible {
+    border-color: rgba(255, 255, 255, 0.7);
+    background: linear-gradient(135deg, #70208a 0%, #9b14c5 100%);
+    box-shadow: 0 8px 20px rgba(15, 5, 22, 0.3);
+}
+
+.home-login-link:focus-visible {
+    outline: 3px solid rgba(226, 168, 245, 0.8);
+    outline-offset: 3px;
 }
 
 .home-login-icon {
@@ -353,7 +437,7 @@ input[type="submit"]:hover {
 }
 
 .home-login-link:hover .home-login-icon {
-    transform: translateX(3px);
+    transform: scale(1.08);
 }
 
 .home-page .site-footer {
@@ -389,7 +473,15 @@ input[type="submit"]:hover {
     }
 
     .home-hero {
-        padding: 56px 18px 42px;
+        padding: 88px 18px 42px;
+    }
+
+    .home-login-link {
+        top: 18px;
+        right: 16px;
+        min-height: 40px;
+        padding: 8px 14px;
+        font-size: 0.88rem;
     }
 
     .page-main {
@@ -403,6 +495,11 @@ input[type="submit"]:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .info-hero h1,
+    .info-card {
+        animation: none;
+    }
+
     .home-hero h1,
     .home-hero > p:not(.home-eyebrow),
     .home-nav-card {

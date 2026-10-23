@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/Login.css' %}">
 </head>
 <body>
+    <p class="link-voltar"><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
     <header>
-        <h1>Nexora - IoT Manager</h1>
+        <h1>Bem-Vindo! Faça Login ou crie uma conta</h1>
     </header>
-    <h2></h2>
-    
     <form method="POST">
         
         <label>Nome de Usuário:</label><br>
@@ -20,12 +19,11 @@
         
         <label>Senha:</label><br>
         <input type="password" name="senha_usuario" required><br><br>
-        
-        <button type="submit">Entrar</button>
-        <a href="{% url 'cadastro' %}" 
-            <button type="button">Criar conta</button>
-        </a>    
+
+        <div class="botoes-login">
+            <button type="submit" class="btn-entrar">Entrar</button>
+            <button type="button" class="btn-cadastro" onclick="window.location.href='{% url 'cadastro' %}'">Criar conta</button>
+        </div>
     </form>
 </body>
 </html>
-

@@ -6,11 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quem Somos - Nexora</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/sobre.css' %}">
 </head>
 <body>
-    <p><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
-    <h1>Quem somos nós?</h1>
-    <p>Somos a Nexora, empresa que utiliza IoT para conectar equipamentos, processos e ambientes, transformando dados operacionais em informações úteis para eficiência e tomada de decisão.</p>
+    <header class="site-header">
+        <p class="link-voltar"><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
+        <h1>Quem somos nós?</h1>
+    </header>
+    <main class="page-main">
+        <section class="page-card">
+            <p>Somos a Nexora, empresa que utiliza IoT para conectar equipamentos, processos e ambientes, transformando dados operacionais em informações úteis para eficiência e tomada de decisão.</p>
+        </section>
+    </main>
 </body>
 </html>

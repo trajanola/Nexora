@@ -1,24 +1,27 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <h1>Nexora - IoT Manager</h1>
-    
-    <form method="POST">
-        
-        <label>Nome de Usuário:</label><br>
-        <input type="text" name="nome_usuario" required><br><br>
-        
-        <label>E-mail:</label><br>
-        <input type="email" name="email_usuario" required><br><br>
-        
-        <label>Senha:</label><br>
-        <input type="password" name="senha_usuario" required><br><br>
-        
-        <button type="submit">Cadastrar</button>
-    </form>
+    <header class="site-header">
+        <p class="link-voltar"><a href="{% url 'login' %}">&larr; Voltar ao Login</a></p>
+        <h1>Criar conta</h1>
+        <p>Cadastre-se para acessar a plataforma Nexora.</p>
+    </header>
+    <main class="page-main">
+        <section class="page-card">
+            <form class="page-form" method="POST">
+                <p><label for="nome_usuario">Nome de Usuário:</label><input id="nome_usuario" type="text" name="nome_usuario" required></p>
+                <p><label for="email_usuario">E-mail:</label><input id="email_usuario" type="email" name="email_usuario" required></p>
+                <p><label for="senha_usuario">Senha:</label><input id="senha_usuario" type="password" name="senha_usuario" required></p>
+                <button type="submit">Cadastrar</button>
+            </form>
+        </section>
+    </main>
 </body>
 </html>

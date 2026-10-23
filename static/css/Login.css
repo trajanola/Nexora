@@ -40,22 +40,20 @@ h1 {
     text-align: center;
     color: white;
     font-size: clamp(1.8rem, 4vw, 2.5rem);
-    letter-spacing: 0.08em;
+    letter-spacing: normal;
     line-height: 1.4;
     text-shadow: 0 3px 18px rgba(236, 185, 255, 0.35);
-    animation: welcomeIn 900ms ease-out both;
+    animation: welcomeIn 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes welcomeIn {
     from {
         opacity: 0;
-        transform: translateY(12px);
-        letter-spacing: 0.16em;
+        transform: translateY(6px);
     }
     to {
         opacity: 1;
         transform: translateY(0);
-        letter-spacing: 0.08em;
     }
 }
 

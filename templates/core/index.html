@@ -7,36 +7,59 @@
     <title>Nexora - Plataforma IoT</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
-    <header>
-        <h1>Nexora - IoT Manager</h1>
-        <p>Conectando equipamentos, processos e ambientes para gerar inteligência operacional.</p>
+<body class="home-page">
+    <header class="site-header home-hero">
+        <p class="home-eyebrow">NEXORA · IoT MANAGER</p>
+        <h1>Conectando o que importa</h1>
+        <p>Equipamentos, processos e ambientes em uma plataforma inteligente.</p>
     </header>
-    <hr>
-    <main>
-        <h2>Sumário de Navegação</h2>
+    <main class="page-main home-main">
+        <h2>Explore a Nexora</h2>
         <nav>
-            <ul>
-                <li>
-                    <strong><a href="{% url 'sobre' %}">1. Quem Somos Nós</a></strong>
+            <ul class="navigation-cards">
+                <li class="home-nav-card">
+                    <a class="home-nav-link" href="{% url 'sobre' %}">
+                        <svg class="home-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <circle cx="9" cy="8" r="3.5"></circle>
+                            <path d="M2.5 20a6.5 6.5 0 0 1 13 0"></path>
+                            <path d="M16 5.2a3.5 3.5 0 0 1 0 6.6M18 14a6 6 0 0 1 3.5 5.5"></path>
+                        </svg>
+                        <span>Quem Somos Nós</span>
+                    </a>
                     <p>Conheça o propósito e a visão estratégica da Nexora.</p>
                 </li>
-                <li>
-                    <strong><a href="{% url 'servicos' %}">2. O que Fazemos</a></strong>
+                <li class="home-nav-card">
+                    <a class="home-nav-link" href="{% url 'servicos' %}">
+                        <svg class="home-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+                            <path d="M8 21h8m-4-4v4M7 9h3m-3 4h7"></path>
+                            <circle cx="17" cy="10" r="1"></circle>
+                        </svg>
+                        <span>O que Fazemos</span>
+                    </a>
                     <p>Serviços de IoT, telemetria e gestão de dados operacionais.</p>
                 </li>
-                <li>
-                    <strong><a href="{% url 'contato' %}">3. Fale Conosco</a></strong>
+                <li class="home-nav-card">
+                    <a class="home-nav-link" href="{% url 'contato' %}">
+                        <svg class="home-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                            <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                            <path d="m4 7 8 6 8-6"></path>
+                        </svg>
+                        <span>Fale Conosco</span>
+                    </a>
                     <p>Canais de suporte e comunicação institucional.</p>
                 </li>
             </ul>
-            <a href="{% url 'login' %}">
-                <button type="button">Fazer Login</button>
+            <a class="action-link home-login-link" href="{% url 'login' %}">
+                <svg class="home-login-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+                    <path d="M10 17l5-5-5-5m5 5H3"></path>
+                    <path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"></path>
+                </svg>
+                <span>Fazer Login</span>
             </a>
         </nav>
     </main>
-    <hr>
-    <footer>
+    <footer class="site-footer">
         <p>&copy; 2026 Nexora - Projeto CESAR School</p>
     </footer>
 </body>

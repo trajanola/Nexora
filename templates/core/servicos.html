@@ -6,11 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>O que Fazemos - Nexora</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'css/oquefazemos.css' %}">
 </head>
 <body>
-    <p><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
-    <h1>O que fazemos</h1>
-    <p>Contamos com uma plataforma própria criada para armazenar e facilitar o gerenciamento de dados captados pelos dispositivos cadastrados de maneira simples e eficiente.</p>
+    <header class="site-header">
+        <p class="link-voltar"><a href="{% url 'home' %}">&larr; Voltar ao Sumário</a></p>
+        <h1>O que fazemos</h1>
+    </header>
+    <main class="page-main">
+        <section class="page-card">
+            <p>Contamos com uma plataforma própria criada para armazenar e facilitar o gerenciamento de dados captados pelos dispositivos cadastrados de maneira simples e eficiente.</p>
+        </section>
+    </main>
 </body>
 </html>

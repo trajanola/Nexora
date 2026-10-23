@@ -51,6 +51,7 @@ O token autentica o dispositivo na API; mantenha-o privado. O custo exibido no p
 - Django
 - HTML5
 - JIRA
+- CSS
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>

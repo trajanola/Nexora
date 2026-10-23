@@ -25,6 +25,26 @@ A maioria das empresas falha na adoção de IoT não por falta de sensores, mas 
 
 A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimizar a gestão de ecossistemas educacionais. O sistema conecta alunos, professores e administradores em um ambiente integrado, intuitivo e funcional, facilitando o acompanhamento acadêmico, a organização de conteúdos e a comunicação institucional.
 
+## ⚙️ &nbsp;Funcionalidades da plataforma
+
+Depois de criar uma conta e entrar, o usuário pode:
+
+- Cadastrar dispositivos com localização e limite de consumo.
+- Consultar o histórico recente de leituras de cada dispositivo.
+- Configurar a tarifa de energia em R$/kWh.
+- Acompanhar no painel os dispositivos e o custo estimado do consumo que exceder os limites no mês atual.
+
+Cada dispositivo possui um token próprio. Na página de detalhes do dispositivo, copie o token e envie leituras para `POST /api/leituras/` como JSON:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/leituras/ \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: <token-do-dispositivo>" \
+  -d '{"valor_kwh": 42.7}'
+```
+
+O token autentica o dispositivo na API; mantenha-o privado. O custo exibido no painel considera somente a parcela de cada leitura acima do limite, multiplicada pela tarifa configurada.
+
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
 - Python

@@ -275,8 +275,8 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ---
 
 ### 🎥 Demonstrações em Vídeo
-- 🎬 **[Screencast Deployment da infraestrutura em produção]()**
-- 🎬 **[Screencast de explicação do código Django]()**
+
+- 🎬 **[Screencast de explicação do código Django](https://youtu.be/MTF9BKQNVtI?si=Ci19lpYDu7i5IkUc)**
 
 ---
 

@@ -258,9 +258,9 @@ Mapeamento das Histórias de Usuário com cenários de testes operacionais em BD
 
 Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[historias-de-usuario.md](./docs/historias-de-usuario.md)**
 
----
-
 ### ✅ Histórias Implementadas
+
+---
 
 - **US11 — Criar conta:** cadastro com nome de usuário, e-mail e senha; o nome de usuário é único e a senha é armazenada com hash pelo Django.
 - **US12 — Entrar e sair da plataforma:** autenticação, redirecionamento ao painel após login, proteção das áreas privadas e encerramento de sessão via logout.
@@ -269,8 +269,6 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 - **US23 — Acompanhar custos de anomalias:** configuração de tarifa de energia e painel mensal que calcula o custo do consumo acima do limite dos dispositivos.
 
 > **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
-
----
 
 ### 🎥 Demonstrações em Vídeo
 
@@ -281,6 +279,7 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ### 👾 Print Issue:
 
 ---
+
 #### Quadro da Issue
 ![Print da Issue](https://github.com/trajanola/Nexora/blob/main/docs/Captura%20de%20Tela%202026-10-23%20a%CC%80s%2022.44.11.png)
 

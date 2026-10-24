@@ -270,13 +270,21 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 > **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
 
-### 📋 Backlog (Jira)
-
 ---
 
 ### 🎥 Demonstrações em Vídeo
 
+---
+
 - 🎬 **[Screencast de explicação do código Django](https://youtu.be/MTF9BKQNVtI?si=Ci19lpYDu7i5IkUc)**
+
+### 👾 Print Issue:
+
+---
+#### Quadro da Issue
+![Print da Issue](https://github.com/trajanola/Nexora/blob/main/docs/Captura%20de%20Tela%202026-10-23%20a%CC%80s%2022.44.11.png)
+
+### 📋 Backlog (Jira)
 
 ---
 

@@ -272,6 +272,14 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 ### 📋 Backlog (Jira)
 
+---
+
+### 🎥 Demonstrações em Vídeo
+- 🎬 **[Screencast Deployment da infraestrutura em produção]()**
+- 🎬 **[Screencast de explicação do código Django]()**
+
+---
+
 #### Quadro da Sprint 03
 ![Quadro da Sprint 03](./docs/entrega3_backlog_jira.png)
 

@@ -198,6 +198,86 @@
     margin-top: 22px;
 }
 
+.device-orders-card {
+    margin-top: 22px;
+}
+
+.device-orders-card h2,
+.os-action-card h2 {
+    margin: 0;
+    color: var(--nexora-ink);
+    font-size: 1.2rem;
+}
+
+.os-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #f1edf5;
+    color: #51465b;
+    font-size: 0.82rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.os-status-aprovada {
+    background: #f2eafb;
+    color: #622080;
+}
+
+.os-status-em_execucao {
+    background: #fff3d8;
+    color: #79500a;
+}
+
+.os-status-concluida {
+    background: #eaf7ee;
+    color: #1d5a2f;
+}
+
+.os-metadata {
+    display: grid;
+    gap: 14px;
+    margin: 24px 0 0;
+}
+
+.os-metadata > div {
+    padding-top: 12px;
+    border-top: 1px solid #eee9f1;
+}
+
+.os-metadata dt {
+    color: var(--nexora-muted);
+    font-size: 0.84rem;
+    font-weight: 600;
+}
+
+.os-metadata dd {
+    margin: 3px 0 0;
+    color: var(--nexora-ink);
+}
+
+.os-action-card {
+    margin-top: 22px;
+}
+
+.os-action-card > p {
+    margin: 10px 0 18px;
+    color: var(--nexora-muted);
+}
+
+.os-action-card .page-form {
+    margin-top: 18px;
+}
+
+.os-action-card .page-form textarea {
+    min-height: 110px;
+}
+
+.os-action-card .errorlist {
+    margin: 0 0 6px;
+}
+
 .device-api-card h2 {
     margin-top: 0;
     font-size: 1.2rem;

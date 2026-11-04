@@ -27,6 +27,32 @@
     {% endif %}
 </section>
 
+<section class="page-card device-orders-card">
+    <div class="topo-acoes">
+        <h2>Ordens de serviço</h2>
+        <a class="action-link" href="{% url 'ordem_servico_nova' dispositivo.pk %}">+ Nova ordem de serviço</a>
+    </div>
+    {% if ordens_servico %}
+        <div class="tabela-wrap">
+            <table class="tabela">
+                <thead><tr><th>Aberta em</th><th>Serviço</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                    {% for ordem in ordens_servico %}
+                        <tr>
+                            <td>{{ ordem.criada_em|date:"d/m/Y H:i" }}</td>
+                            <td>{{ ordem.resumo }}</td>
+                            <td><span class="os-status os-status-{{ ordem.status }}">{{ ordem.get_status_display }}</span></td>
+                            <td><a href="{% url 'ordem_servico_detalhe' ordem.pk %}"><strong>Abrir</strong></a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhuma ordem de serviço registrada para este dispositivo.</p>
+    {% endif %}
+</section>
+
 <section class="page-card device-api-card">
     <h2>Enviar leituras pelo equipamento</h2>
     <p>Token deste dispositivo (não compartilhe):</p>

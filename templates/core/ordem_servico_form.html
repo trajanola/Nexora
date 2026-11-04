@@ -1,0 +1,16 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Nova ordem de serviço{% endblock %}
+{% block cabecalho %}Nova ordem de serviço{% endblock %}
+{% block subtitulo %}{{ dispositivo.nome }} · a ordem será criada como rascunho.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <div class="topo-acoes">
+            <a href="{% url 'dispositivo_detalhe' dispositivo.pk %}">Cancelar</a>
+            <button type="submit">Salvar rascunho</button>
+        </div>
+    </form>
+</section>
+{% endblock %}

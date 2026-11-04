@@ -1,0 +1,56 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}OS #{{ ordem_servico.pk }}{% endblock %}
+{% block cabecalho %}Ordem de serviço #{{ ordem_servico.pk }}{% endblock %}
+{% block subtitulo %}{{ ordem_servico.dispositivo.nome }} · {{ ordem_servico.get_status_display }}{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <div class="topo-acoes">
+        <h2>{{ ordem_servico.resumo }}</h2>
+        <a href="{% url 'dispositivo_detalhe' ordem_servico.dispositivo.pk %}">&larr; Voltar ao dispositivo</a>
+    </div>
+    {% if ordem_servico.descricao %}
+        <p>{{ ordem_servico.descricao|linebreaksbr }}</p>
+    {% endif %}
+    <dl class="os-metadata">
+        <div><dt>Criada em</dt><dd>{{ ordem_servico.criada_em|date:"d/m/Y H:i" }}</dd></div>
+        {% if ordem_servico.aprovada_em %}
+            <div><dt>Aprovada em</dt><dd>{{ ordem_servico.aprovada_em|date:"d/m/Y H:i" }} por {{ ordem_servico.aprovada_por|default:"usuário removido" }}</dd></div>
+        {% endif %}
+        {% if ordem_servico.status == 'concluida' %}
+            <div><dt>Causa confirmada</dt><dd>{{ ordem_servico.causa_confirmada }}</dd></div>
+            <div><dt>Ação realizada</dt><dd>{{ ordem_servico.acao_realizada|linebreaksbr }}</dd></div>
+            <div><dt>Tempo de parada</dt><dd>{{ ordem_servico.tempo_parada_minutos }} minutos</dd></div>
+            <div><dt>Concluída em</dt><dd>{{ ordem_servico.concluida_em|date:"d/m/Y H:i" }} por {{ ordem_servico.concluida_por|default:"usuário removido" }}</dd></div>
+        {% endif %}
+    </dl>
+</section>
+
+{% if ordem_servico.status != 'concluida' %}
+    <section class="page-card os-action-card">
+        <h2>Próxima etapa</h2>
+        {% if ordem_servico.status == 'rascunho' %}
+            <p>Revise a solicitação e aprove a ordem para autorizar o início do serviço.</p>
+            <form method="post" action="{% url 'ordem_servico_acao' ordem_servico.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="aprovar">
+                <button type="submit">Aprovar ordem</button>
+            </form>
+        {% elif ordem_servico.status == 'aprovada' %}
+            <p>A ordem foi aprovada. Registre o início da execução quando o trabalho começar.</p>
+            <form method="post" action="{% url 'ordem_servico_acao' ordem_servico.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="iniciar">
+                <button type="submit">Iniciar execução</button>
+            </form>
+        {% elif ordem_servico.status == 'em_execucao' %}
+            <p>Informe os dados da intervenção para concluir e manter o histórico da máquina.</p>
+            <form class="page-form" method="post" action="{% url 'ordem_servico_acao' ordem_servico.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="acao" value="concluir">
+                {{ form_conclusao.as_p }}
+                <button type="submit">Concluir ordem</button>
+            </form>
+        {% endif %}
+    </section>
+{% endif %}
+{% endblock %}

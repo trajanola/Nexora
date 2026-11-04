@@ -51,6 +51,7 @@ O token autentica o dispositivo na API; mantenha-o privado. O custo exibido no p
 - Django
 - HTML5
 - JIRA
+- CSS
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>
@@ -257,9 +258,9 @@ Mapeamento das Histórias de Usuário com cenários de testes operacionais em BD
 
 Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[historias-de-usuario.md](./docs/historias-de-usuario.md)**
 
----
-
 ### ✅ Histórias Implementadas
+
+---
 
 - **US11 — Criar conta:** cadastro com nome de usuário, e-mail e senha; o nome de usuário é único e a senha é armazenada com hash pelo Django.
 - **US12 — Entrar e sair da plataforma:** autenticação, redirecionamento ao painel após login, proteção das áreas privadas e encerramento de sessão via logout.
@@ -270,7 +271,22 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 > **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
 
+### 🎥 Demonstrações em Vídeo
+
+---
+
+- 🎬 **[Screencast de explicação do código Django](https://youtu.be/MTF9BKQNVtI?si=Ci19lpYDu7i5IkUc)**
+
+### 👾 Print Issue:
+
+---
+
+#### Quadro da Issue
+![Print da Issue](https://github.com/trajanola/Nexora/blob/main/docs/Captura%20de%20Tela%202026-10-23%20a%CC%80s%2022.44.11.png)
+
 ### 📋 Backlog (Jira)
+
+---
 
 #### Quadro da Sprint 03
 ![Quadro da Sprint 03](./docs/entrega3_backlog_jira.png)

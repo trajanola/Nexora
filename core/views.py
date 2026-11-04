@@ -6,18 +6,29 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse, reverse_lazy
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
-from .forms import DispositivoForm, ParametroForm
-from .models import Dispositivo, Leitura
-from .services import calcular_anomalias, obter_parametro
+from .forms import (
+    ConclusaoOrdemServicoForm,
+    DispositivoForm,
+    OrdemServicoForm,
+    ParametroForm,
+)
+from .models import Dispositivo, Leitura, OrdemServico
+from .services import (
+    aprovar_ordem_servico,
+    calcular_anomalias,
+    concluir_ordem_servico,
+    iniciar_ordem_servico,
+    obter_parametro,
+)
 
 
 def home(request):
@@ -150,7 +161,92 @@ class DispositivoDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto['leituras'] = self.object.leituras.all()[:20]
+        contexto['ordens_servico'] = self.object.ordens_servico.order_by('criada_em', 'pk')
         return contexto
+
+
+class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
+    form_class = OrdemServicoForm
+    template_name = 'core/ordem_servico_form.html'
+
+    def get_dispositivo(self):
+        return get_object_or_404(
+            Dispositivo,
+            pk=self.kwargs['dispositivo_pk'],
+            dono=self.request.user,
+        )
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto['dispositivo'] = self.get_dispositivo()
+        return contexto
+
+    def form_valid(self, form):
+        form.instance.dispositivo = self.get_dispositivo()
+        messages.success(self.request, 'Ordem de serviço criada como rascunho.')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('ordem_servico_detalhe', kwargs={'pk': self.object.pk})
+
+
+class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
+    model = OrdemServico
+    template_name = 'core/ordem_servico_detalhe.html'
+    context_object_name = 'ordem_servico'
+
+    def get_queryset(self):
+        return OrdemServico.objects.filter(dispositivo__dono=self.request.user).select_related(
+            'dispositivo',
+            'aprovada_por',
+            'concluida_por',
+        )
+
+    def get_context_data(self, **kwargs):
+        contexto = super().get_context_data(**kwargs)
+        contexto.setdefault('form_conclusao', ConclusaoOrdemServicoForm())
+        return contexto
+
+
+class OrdemServicoAcaoView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        ordem = get_object_or_404(
+            OrdemServico.objects.filter(dispositivo__dono=request.user),
+            pk=pk,
+        )
+        acao = request.POST.get('acao')
+
+        try:
+            if acao == 'aprovar':
+                aprovar_ordem_servico(ordem, request.user)
+                messages.success(request, 'Ordem de serviço aprovada.')
+            elif acao == 'iniciar':
+                iniciar_ordem_servico(ordem)
+                messages.success(request, 'Ordem de serviço iniciada.')
+            elif acao == 'concluir':
+                form = ConclusaoOrdemServicoForm(request.POST)
+                if not form.is_valid():
+                    return render(
+                        request,
+                        'core/ordem_servico_detalhe.html',
+                        {
+                            'ordem_servico': ordem,
+                            'form_conclusao': form,
+                        },
+                        status=400,
+                    )
+                concluir_ordem_servico(
+                    ordem,
+                    request.user,
+                    **form.cleaned_data,
+                )
+                messages.success(request, 'Ordem de serviço concluída.')
+            else:
+                messages.error(request, 'Ação de ordem de serviço inválida.')
+        except ValidationError as erro:
+            messages.error(request, ' '.join(erro.messages))
+
+        return redirect('ordem_servico_detalhe', pk=ordem.pk)
 
 
 @csrf_exempt

@@ -12,7 +12,22 @@ urlpatterns = [
     path('conta/excluir/', views.ExcluirConta.as_view(), name='excluir_conta'),
     path('dispositivos/', views.DispositivoListView.as_view(), name='dispositivo_lista'),
     path('dispositivos/novo/', views.DispositivoCreateView.as_view(), name='dispositivo_novo'),
+    path(
+        'dispositivos/<int:dispositivo_pk>/ordens-servico/nova/',
+        views.OrdemServicoCreateView.as_view(),
+        name='ordem_servico_nova',
+    ),
     path('dispositivos/<int:pk>/', views.DispositivoDetailView.as_view(), name='dispositivo_detalhe'),
+    path(
+        'ordens-servico/<int:pk>/',
+        views.OrdemServicoDetailView.as_view(),
+        name='ordem_servico_detalhe',
+    ),
+    path(
+        'ordens-servico/<int:pk>/acao/',
+        views.OrdemServicoAcaoView.as_view(),
+        name='ordem_servico_acao',
+    ),
     path('api/leituras/', views.registrar_leitura, name='api_leitura'),
     path('painel/', views.Painel.as_view(), name='painel'),
     path('parametros/', views.ParametrosView.as_view(), name='parametros'),

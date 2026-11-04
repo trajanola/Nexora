@@ -64,3 +64,58 @@ class Parametro(models.Model):
 
     def __str__(self):
         return f'Parâmetros de {self.usuario}'
+
+
+class OrdemServico(models.Model):
+    class Status(models.TextChoices):
+        RASCUNHO = 'rascunho', 'Rascunho'
+        APROVADA = 'aprovada', 'Aprovada'
+        EM_EXECUCAO = 'em_execucao', 'Em execução'
+        CONCLUIDA = 'concluida', 'Concluída'
+
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        on_delete=models.CASCADE,
+        related_name='ordens_servico',
+    )
+    resumo = models.CharField('serviço solicitado', max_length=160)
+    descricao = models.TextField('descrição', blank=True)
+    status = models.CharField(
+        'status',
+        max_length=20,
+        choices=Status.choices,
+        default=Status.RASCUNHO,
+    )
+    criada_em = models.DateTimeField(auto_now_add=True)
+    atualizada_em = models.DateTimeField(auto_now=True)
+    aprovada_em = models.DateTimeField(null=True, blank=True)
+    aprovada_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='ordens_servico_aprovadas',
+        null=True,
+        blank=True,
+    )
+    causa_confirmada = models.CharField('causa confirmada', max_length=255, blank=True)
+    acao_realizada = models.TextField('ação realizada', blank=True)
+    tempo_parada_minutos = models.PositiveIntegerField(
+        'tempo de parada (minutos)',
+        null=True,
+        blank=True,
+    )
+    concluida_em = models.DateTimeField(null=True, blank=True)
+    concluida_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='ordens_servico_concluidas',
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ['criada_em', 'pk']
+        verbose_name = 'ordem de serviço'
+        verbose_name_plural = 'ordens de serviço'
+
+    def __str__(self):
+        return f'OS #{self.pk} - {self.resumo}'

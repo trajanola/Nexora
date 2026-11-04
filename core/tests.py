@@ -7,7 +7,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Dispositivo, Leitura, Parametro
+from .models import Dispositivo, Leitura, OrdemServico, Parametro
 from .services import calcular_anomalias
 
 
@@ -238,6 +238,150 @@ class US22LeiturasTests(BaseTestCase):
         resposta = self.client.get(reverse('dispositivo_detalhe', args=[self.dispositivo.pk]))
         valores = [leitura.valor_kwh for leitura in resposta.context['leituras']]
         self.assertEqual(valores, [Decimal('20.00'), Decimal('10.00')])
+
+
+class US18OrdensServicoTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.client.login(username='carlos', password='senha-forte-123')
+        self.url_detalhe_dispositivo = reverse(
+            'dispositivo_detalhe',
+            args=[self.dispositivo.pk],
+        )
+
+    def criar_rascunho(self, resumo='Revisar prensa'):
+        return self.client.post(
+            reverse('ordem_servico_nova', args=[self.dispositivo.pk]),
+            {'resumo': resumo, 'descricao': 'Verificar vibração anormal.'},
+        )
+
+    def test_cria_ordem_como_rascunho_e_exibe_no_historico_da_maquina(self):
+        resposta = self.criar_rascunho()
+        ordem = OrdemServico.objects.get()
+
+        self.assertRedirects(
+            resposta,
+            reverse('ordem_servico_detalhe', args=[ordem.pk]),
+        )
+        self.assertEqual(ordem.status, OrdemServico.Status.RASCUNHO)
+        historico = self.client.get(self.url_detalhe_dispositivo)
+        self.assertContains(historico, 'Revisar prensa')
+        self.assertContains(historico, 'Rascunho')
+
+    def test_nao_cria_os_para_dispositivo_de_outro_usuario(self):
+        self.client.login(username='outro', password='senha-forte-123')
+        resposta = self.client.get(
+            reverse('ordem_servico_nova', args=[self.dispositivo.pk]),
+        )
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_aprovar_registra_data_e_responsavel(self):
+        self.criar_rascunho()
+        ordem = OrdemServico.objects.get()
+
+        resposta = self.client.post(
+            reverse('ordem_servico_acao', args=[ordem.pk]),
+            {'acao': 'aprovar'},
+        )
+
+        ordem.refresh_from_db()
+        self.assertRedirects(resposta, reverse('ordem_servico_detalhe', args=[ordem.pk]))
+        self.assertEqual(ordem.status, OrdemServico.Status.APROVADA)
+        self.assertIsNotNone(ordem.aprovada_em)
+        self.assertEqual(ordem.aprovada_por, self.usuario)
+
+    def test_nao_permite_aprovar_uma_os_mais_de_uma_vez(self):
+        self.criar_rascunho()
+        ordem = OrdemServico.objects.get()
+        url_acao = reverse('ordem_servico_acao', args=[ordem.pk])
+        self.client.post(url_acao, {'acao': 'aprovar'})
+        self.client.post(url_acao, {'acao': 'aprovar'})
+
+        ordem.refresh_from_db()
+        self.assertEqual(ordem.status, OrdemServico.Status.APROVADA)
+        self.assertEqual(OrdemServico.objects.count(), 1)
+
+    def test_nao_conclui_sem_dados_obrigatorios(self):
+        self.criar_rascunho()
+        ordem = OrdemServico.objects.get()
+        ordem.status = OrdemServico.Status.EM_EXECUCAO
+        ordem.save(update_fields=['status'])
+
+        resposta = self.client.post(
+            reverse('ordem_servico_acao', args=[ordem.pk]),
+            {
+                'acao': 'concluir',
+                'causa_confirmada': '',
+                'acao_realizada': '',
+                'tempo_parada_minutos': '',
+            },
+        )
+
+        ordem.refresh_from_db()
+        self.assertEqual(resposta.status_code, 400)
+        self.assertEqual(ordem.status, OrdemServico.Status.EM_EXECUCAO)
+        self.assertIsNone(ordem.concluida_em)
+
+    def test_fluxo_completo_registra_intervencao_e_responsavel(self):
+        self.criar_rascunho()
+        ordem = OrdemServico.objects.get()
+        url_acao = reverse('ordem_servico_acao', args=[ordem.pk])
+
+        self.client.post(url_acao, {'acao': 'aprovar'})
+        self.client.post(url_acao, {'acao': 'iniciar'})
+        resposta = self.client.post(
+            url_acao,
+            {
+                'acao': 'concluir',
+                'causa_confirmada': 'Rolamento desgastado',
+                'acao_realizada': 'Rolamento substituído e equipamento testado.',
+                'tempo_parada_minutos': '45',
+            },
+        )
+
+        ordem.refresh_from_db()
+        self.assertRedirects(resposta, reverse('ordem_servico_detalhe', args=[ordem.pk]))
+        self.assertEqual(ordem.status, OrdemServico.Status.CONCLUIDA)
+        self.assertEqual(ordem.causa_confirmada, 'Rolamento desgastado')
+        self.assertEqual(ordem.acao_realizada, 'Rolamento substituído e equipamento testado.')
+        self.assertEqual(ordem.tempo_parada_minutos, 45)
+        self.assertIsNotNone(ordem.concluida_em)
+        self.assertEqual(ordem.concluida_por, self.usuario)
+
+    def test_historico_da_maquina_e_exibido_em_ordem_cronologica(self):
+        mais_antiga = OrdemServico.objects.create(
+            dispositivo=self.dispositivo,
+            resumo='Primeira intervenção',
+        )
+        mais_recente = OrdemServico.objects.create(
+            dispositivo=self.dispositivo,
+            resumo='Segunda intervenção',
+        )
+
+        resposta = self.client.get(self.url_detalhe_dispositivo)
+
+        ordens = list(resposta.context['ordens_servico'])
+        self.assertEqual([ordem.pk for ordem in ordens], [mais_antiga.pk, mais_recente.pk])
+
+    def test_usuario_nao_visualiza_ou_altera_os_de_outro(self):
+        ordem = OrdemServico.objects.create(
+            dispositivo=self.dispositivo,
+            resumo='OS privada',
+        )
+        self.client.login(username='outro', password='senha-forte-123')
+
+        resposta_detalhe = self.client.get(
+            reverse('ordem_servico_detalhe', args=[ordem.pk]),
+        )
+        resposta_acao = self.client.post(
+            reverse('ordem_servico_acao', args=[ordem.pk]),
+            {'acao': 'aprovar'},
+        )
+
+        self.assertEqual(resposta_detalhe.status_code, 404)
+        self.assertEqual(resposta_acao.status_code, 404)
+        ordem.refresh_from_db()
+        self.assertEqual(ordem.status, OrdemServico.Status.RASCUNHO)
 
 
 class US23AnomaliasTests(BaseTestCase):

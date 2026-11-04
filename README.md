@@ -266,6 +266,7 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 - **US21 — Cadastrar e listar dispositivos:** cadastro de dispositivos com localização e limite de consumo, com acesso restrito aos dispositivos do próprio usuário.
 - **US22 — Registrar e consultar leituras:** recebimento de leituras pela API autenticada com token do dispositivo e consulta do histórico recente.
 - **US23 — Acompanhar custos de anomalias:** configuração de tarifa de energia e painel mensal que calcula o custo do consumo acima do limite dos dispositivos.
+- **US18 — Gerenciar ordens de serviço:** criação de rascunhos por dispositivo, aprovação com registro do responsável e horário, acompanhamento da execução e conclusão com causa, ação realizada e tempo de parada.
 
 > **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
 
@@ -277,11 +278,20 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 </details>
 
 <details>
-<summary><b>📌 Entrega 4: ??</b> (clique para expandir)</summary>
+<summary><b>📌 Entrega 4: Próximas histórias de usuário</b> (clique para expandir)</summary>
 
 <br>
 
-- *Conteúdo indisponível temporariamente.*
+As histórias abaixo estão no backlog e **ainda não foram implementadas**. Os cenários completos estão no documento de [Histórias de Usuário](./docs/historias-de-usuario.md).
+
+### US19 — Notificações consolidadas e priorizadas
+
+**Como** Gerente de Manutenção (Carlos), **quero** receber notificações somente de alertas críticos e consolidados por causa raiz, **para** agir rapidamente sem interrupções irrelevantes.
+
+**Critérios de aceite:**
+- Ocorrências de severidade alta geram notificação com orientação e link para a ocorrência.
+- Ocorrências de severidade baixa não geram notificação.
+- Sinais da mesma máquina e causa, recebidos em até cinco minutos, são agrupados em uma única notificação.
 </details>
 
 ## 🔗 &nbsp;Links Importantes

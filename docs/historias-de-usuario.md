@@ -25,7 +25,7 @@ O documento registra as histórias planejadas e implementadas. Além da infraest
 | US16 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Backlog |
 | US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Backlog |
 | US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Backlog |
-| US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Backlog |
+| US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Implementada (Entrega 04) |
 | US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
 | US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
 | US21 | Cadastro e isolamento de dispositivos | Carlos | 1 | Implementada (Entrega 03) |
@@ -469,3 +469,12 @@ Histórias selecionadas para implementação nesta entrega, no formato post-it.
 | **Quero** | configurar a tarifa de energia e ver o custo do consumo acima do limite |
 | **Para** | entender o impacto financeiro das anomalias no mês atual |
 | **Critério de pronto** | Cada usuário pode salvar sua tarifa; o painel soma o consumo excedente das leituras do mês, converte o excedente em custo estimado e informa quando não há custo adicional |
+
+### US18: Gerenciar o ciclo de vida da Ordem de Serviço
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | acompanhar uma Ordem de Serviço do rascunho à conclusão |
+| **Para** | manter o histórico e a rastreabilidade das intervenções por máquina |
+| **Critério de pronto** | A OS pode ser criada como rascunho, aprovada com registro de data/hora e responsável, iniciada e concluída somente após informar causa confirmada, ação realizada e tempo de parada; o histórico aparece em ordem cronológica na página do dispositivo |

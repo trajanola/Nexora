@@ -1,14 +1,19 @@
 import json
+from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.mail import send_mail
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -16,12 +21,22 @@ from django.views.decorators.http import require_POST
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
 from .forms import (
+    CadastroForm,
     ConclusaoOrdemServicoForm,
+    ConviteEmpresaForm,
     DispositivoForm,
+    MensagemContatoForm,
     OrdemServicoForm,
     ParametroForm,
 )
-from .models import Dispositivo, Leitura, OrdemServico
+from .models import (
+    ConviteEmpresa,
+    Dispositivo,
+    Leitura,
+    OrdemServico,
+    Parametro,
+    PerfilEmpresa,
+)
 from .services import (
     aprovar_ordem_servico,
     calcular_anomalias,
@@ -44,29 +59,190 @@ def servicos(request):
 
 
 def contato(request):
-    return render(request, 'core/contato.html')
+    form = MensagemContatoForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, 'Mensagem enviada com sucesso. A equipe Nexora recebeu seu contato.')
+        return redirect('contato')
+    return render(request, 'core/contato.html', {'form': form})
 
 
 class Cadastro(View):
     def get(self, request):
-        return render(request, 'core/Cadastro.html')
+        return render(request, 'core/Cadastro.html', {'form': CadastroForm()})
 
+    @transaction.atomic
     def post(self, request):
-        nome_usuario = request.POST.get('nome_usuario')
-        if User.objects.filter(username=nome_usuario).exists():
+        form = CadastroForm(request.POST)
+        if not form.is_valid():
+            return render(request, 'core/Cadastro.html', {'form': form}, status=400)
+
+        usuario = User.objects.create_user(
+            username=form.cleaned_data['nome_usuario'],
+            email=form.cleaned_data['email_usuario'],
+            password=form.cleaned_data['senha_usuario'],
+        )
+        usuario.perfil.empresa.nome = form.cleaned_data['nome_empresa']
+        usuario.perfil.empresa.save(update_fields=['nome'])
+        messages.success(request, 'Conta criada. Entre com seus dados para acessar a plataforma.')
+        return redirect('login')
+
+
+class ConvitesEmpresaView(LoginRequiredMixin, View):
+    template_name = 'core/convites_empresa.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.is_authenticated and request.user.perfil.papel != PerfilEmpresa.Papel.PROPRIETARIO:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        return render(request, self.template_name, {
+            'form': ConviteEmpresaForm(),
+            'convites': ConviteEmpresa.objects.filter(empresa=request.user.perfil.empresa),
+        })
+
+    @transaction.atomic
+    def post(self, request):
+        form = ConviteEmpresaForm(request.POST)
+        empresa = request.user.perfil.empresa
+        email = request.POST.get('email', '').strip()
+        usuario_existente = User.objects.filter(email__iexact=email).select_related(
+            'perfil',
+            'perfil__empresa',
+        ).first()
+        if (
+            form.is_valid()
+            and usuario_existente
+            and usuario_existente.perfil.empresa_id == empresa.pk
+        ):
+            form.add_error('email', 'Este usuário já faz parte da empresa.')
+        if (
+            form.is_valid()
+            and ConviteEmpresa.objects.filter(
+                empresa=empresa,
+                email__iexact=form.cleaned_data['email'],
+                aceita_em__isnull=True,
+                criada_em__gte=timezone.now() - timedelta(days=7),
+            ).exists()
+        ):
+            form.add_error('email', 'Já existe um convite pendente para este e-mail.')
+        if not form.is_valid():
+            return render(request, self.template_name, {
+                'form': form,
+                'convites': ConviteEmpresa.objects.filter(empresa=empresa),
+            }, status=400)
+
+        convite = form.save(commit=False)
+        convite.empresa = empresa
+        convite.convidado_por = request.user
+        convite.save()
+        link = request.build_absolute_uri(reverse('convite_aceitar', args=[convite.token]))
+        enviado = send_mail(
+            f'Convite para participar da {convite.empresa.nome} no Nexora',
+            f'Você foi convidado para participar da {convite.empresa.nome} no Nexora. '
+            f'Acesse o link em até sete dias para criar sua conta: {link}',
+            None,
+            [convite.email],
+        )
+        if not enviado:
+            raise RuntimeError(f'Não foi possível enviar o convite para {convite.email}.')
+        messages.success(request, f'Convite enviado para {convite.email}.')
+        return redirect('convites_empresa')
+
+
+class ConviteAceitarView(View):
+    template_name = 'core/convite_aceitar.html'
+
+    def get_convite(self, token):
+        convite = get_object_or_404(
+            ConviteEmpresa.objects.select_related('empresa'),
+            token=token,
+            aceita_em__isnull=True,
+        )
+        if convite.expirado:
+            raise PermissionDenied('Este convite expirou.')
+        return convite
+
+    def contexto_convite(self, convite, form=None, usuario_existente=False):
+        return {
+            'convite': convite,
+            'form': form,
+            'usuario_existente': usuario_existente,
+            'login_url': (
+                f'{reverse("login")}?{urlencode({"next": reverse("convite_aceitar", args=[convite.token])})}'
+            ),
+        }
+
+    def get(self, request, **kwargs):
+        convite = self.get_convite(kwargs['token'])
+        usuario_existente = User.objects.filter(email__iexact=convite.email).first()
+        if request.user.is_authenticated:
+            if request.user.email.casefold() != convite.email.casefold():
+                raise PermissionDenied('Este convite foi enviado para outro endereço de e-mail.')
+            if request.user.perfil.empresa_id == convite.empresa_id:
+                raise PermissionDenied('Você já faz parte desta empresa.')
             return render(
                 request,
-                'core/Cadastro.html',
-                {'erro_cadastro': 'Este nome de usuário já está em uso.'},
-                status=409,
+                self.template_name,
+                self.contexto_convite(convite, usuario_existente=True),
+            )
+        if usuario_existente:
+            return render(
+                request,
+                self.template_name,
+                self.contexto_convite(convite, usuario_existente=True),
+            )
+        return render(
+            request,
+            self.template_name,
+            self.contexto_convite(convite, CadastroForm(convite=convite)),
+        )
+
+    @transaction.atomic
+    def post(self, request, **kwargs):
+        convite = self.get_convite(kwargs['token'])
+        if request.user.is_authenticated:
+            usuario = request.user
+            if usuario.email.casefold() != convite.email.casefold():
+                raise PermissionDenied('Este convite foi enviado para outro endereço de e-mail.')
+        else:
+            usuario_existente = User.objects.filter(email__iexact=convite.email).first()
+            if usuario_existente:
+                return redirect(self.contexto_convite(convite)['login_url'])
+            form = CadastroForm(request.POST, convite=convite)
+            if not form.is_valid():
+                return render(
+                    request,
+                    self.template_name,
+                    self.contexto_convite(convite, form),
+                    status=400,
+                )
+            usuario = User.objects.create_user(
+                username=form.cleaned_data['nome_usuario'],
+                email=convite.email,
+                password=form.cleaned_data['senha_usuario'],
             )
 
-        User.objects.create_user(
-            username=nome_usuario,
-            email=request.POST.get('email_usuario'),
-            password=request.POST.get('senha_usuario'),
-        )
-        messages.success(request, 'Conta criada. Entre com seus dados para acessar a plataforma.')
+        perfil = usuario.perfil
+        empresa_individual = perfil.empresa
+        if empresa_individual.pk == convite.empresa_id:
+            raise PermissionDenied('Você já faz parte desta empresa.')
+        if not empresa_individual.perfis.exclude(usuario=usuario).exists():
+            Dispositivo.objects.filter(empresa=empresa_individual).update(empresa=convite.empresa)
+            if not Parametro.objects.filter(empresa=convite.empresa).exists():
+                Parametro.objects.filter(empresa=empresa_individual).update(empresa=convite.empresa)
+        perfil.empresa = convite.empresa
+        perfil.papel = convite.papel
+        perfil.save(update_fields=['empresa', 'papel'])
+        if not empresa_individual.perfis.exists():
+            empresa_individual.delete()
+        convite.aceita_em = timezone.now()
+        convite.save(update_fields=['aceita_em'])
+        if request.user.is_authenticated:
+            messages.success(request, f'Você agora faz parte da empresa {convite.empresa.nome}.')
+            return redirect('painel')
+        messages.success(request, f'Conta criada e vinculada à empresa {convite.empresa.nome}.')
         return redirect('login')
 
 
@@ -126,9 +302,31 @@ class ExcluirConta(LoginRequiredMixin, View):
             )
 
         usuario = request.user
+        perfil = usuario.perfil
+        empresa = perfil.empresa
+        outros_membros = empresa.perfis.exclude(usuario=usuario)
+        novo_proprietario = None
+        if perfil.papel == PerfilEmpresa.Papel.PROPRIETARIO and outros_membros.exists():
+            novo_proprietario = outros_membros.select_related('usuario').order_by('pk').first()
+            novo_proprietario.papel = PerfilEmpresa.Papel.PROPRIETARIO
+            novo_proprietario.save(update_fields=['papel'])
+        elif not outros_membros.exists():
+            empresa.delete()
         usuario.delete()
         auth_logout(request)
-        messages.success(request, 'A conta e os dados associados foram excluídos.')
+        if novo_proprietario:
+            messages.success(
+                request,
+                f'A conta foi excluída e a propriedade da empresa passou para '
+                f'{novo_proprietario.usuario.username}.',
+            )
+        elif outros_membros.exists():
+            messages.success(
+                request,
+                'A conta foi excluída; os dados da empresa foram mantidos para os demais membros.',
+            )
+        else:
+            messages.success(request, 'A conta e os dados associados foram excluídos.')
         return redirect('login')
 
 
@@ -137,7 +335,7 @@ class DispositivoListView(LoginRequiredMixin, ListView):
     context_object_name = 'dispositivos'
 
     def get_queryset(self):
-        return Dispositivo.objects.filter(dono=self.request.user)
+        return Dispositivo.objects.filter(empresa=self.request.user.perfil.empresa)
 
 
 class DispositivoCreateView(LoginRequiredMixin, CreateView):
@@ -147,6 +345,7 @@ class DispositivoCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.dono = self.request.user
+        form.instance.empresa = self.request.user.perfil.empresa
         messages.success(self.request, 'Dispositivo cadastrado com sucesso.')
         return super().form_valid(form)
 
@@ -156,7 +355,7 @@ class DispositivoDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'dispositivo'
 
     def get_queryset(self):
-        return Dispositivo.objects.filter(dono=self.request.user)
+        return Dispositivo.objects.filter(empresa=self.request.user.perfil.empresa)
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
@@ -173,7 +372,7 @@ class OrdemServicoCreateView(LoginRequiredMixin, CreateView):
         return get_object_or_404(
             Dispositivo,
             pk=self.kwargs['dispositivo_pk'],
-            dono=self.request.user,
+            empresa=self.request.user.perfil.empresa,
         )
 
     def get_context_data(self, **kwargs):
@@ -196,7 +395,9 @@ class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'ordem_servico'
 
     def get_queryset(self):
-        return OrdemServico.objects.filter(dispositivo__dono=self.request.user).select_related(
+        return OrdemServico.objects.filter(
+            dispositivo__empresa=self.request.user.perfil.empresa,
+        ).select_related(
             'dispositivo',
             'aprovada_por',
             'concluida_por',
@@ -211,7 +412,7 @@ class OrdemServicoDetailView(LoginRequiredMixin, DetailView):
 class OrdemServicoAcaoView(LoginRequiredMixin, View):
     def post(self, request, pk):
         ordem = get_object_or_404(
-            OrdemServico.objects.filter(dispositivo__dono=request.user),
+            OrdemServico.objects.filter(dispositivo__empresa=request.user.perfil.empresa),
             pk=pk,
         )
         acao = request.POST.get('acao')
@@ -305,6 +506,14 @@ class ParametrosView(LoginRequiredMixin, UpdateView):
     form_class = ParametroForm
     template_name = 'core/parametros.html'
     success_url = reverse_lazy('painel')
+
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.perfil.papel == PerfilEmpresa.Papel.MANUTENCAO
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
         return obter_parametro(self.request.user)

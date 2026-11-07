@@ -2,19 +2,33 @@ import json
 from datetime import timedelta
 from decimal import Decimal
 
+from django.contrib import admin
+from django.core import mail
 from django.contrib.auth.models import User
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import Dispositivo, Leitura, OrdemServico, Parametro
+from .models import (
+    ConviteEmpresa,
+    Dispositivo,
+    Leitura,
+    MensagemContato,
+    OrdemServico,
+    Parametro,
+    PerfilEmpresa,
+)
 from .services import calcular_anomalias
 
 
 class BaseTestCase(TestCase):
     def setUp(self):
         self.usuario = User.objects.create_user('carlos', password='senha-forte-123')
-        self.outro_usuario = User.objects.create_user('outro', password='senha-forte-123')
+        self.outro_usuario = User.objects.create_user(
+            'outro',
+            email='outro@example.com',
+            password='senha-forte-123',
+        )
         self.dispositivo = Dispositivo.objects.create(
             dono=self.usuario,
             nome='Prensa 02',
@@ -34,6 +48,8 @@ class AutenticacaoTests(BaseTestCase):
                 'nome_usuario': 'nova-conta',
                 'email_usuario': 'nova@example.com',
                 'senha_usuario': 'senha-forte-123',
+                'confirmar_senha': 'senha-forte-123',
+                'nome_empresa': 'Empresa Nova',
             },
             HTTP_X_CSRFTOKEN=token_csrf,
             follow=True,
@@ -57,9 +73,35 @@ class AutenticacaoTests(BaseTestCase):
             'nome_usuario': 'carlos',
             'email_usuario': 'carlos@example.com',
             'senha_usuario': 'senha-forte-123',
+            'confirmar_senha': 'senha-forte-123',
+            'nome_empresa': 'Empresa repetida',
         })
-        self.assertEqual(resposta.status_code, 409)
-        self.assertContains(resposta, 'Este nome de usuário já está em uso.', status_code=409)
+        self.assertEqual(resposta.status_code, 400)
+        self.assertContains(resposta, 'Este nome de usuário já está em uso.', status_code=400)
+
+    def test_cadastro_recusa_senhas_diferentes_e_nao_cria_conta(self):
+        resposta = self.client.post(reverse('cadastro'), {
+            'nome_usuario': 'sem-conta',
+            'email_usuario': 'sem-conta@example.com',
+            'senha_usuario': 'senha-forte-123',
+            'confirmar_senha': 'outra-senha-123',
+            'nome_empresa': 'Empresa Teste',
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertContains(resposta, 'As senhas não coincidem.', status_code=400)
+        self.assertFalse(User.objects.filter(username='sem-conta').exists())
+
+    def test_cadastro_recusa_senha_fraca(self):
+        resposta = self.client.post(reverse('cadastro'), {
+            'nome_usuario': 'senha-fraca',
+            'email_usuario': 'senha-fraca@example.com',
+            'senha_usuario': '12345678',
+            'confirmar_senha': '12345678',
+            'nome_empresa': 'Empresa Teste',
+        })
+        self.assertEqual(resposta.status_code, 400)
+        self.assertContains(resposta, 'Esta senha é inteiramente numérica.', status_code=400)
+        self.assertFalse(User.objects.filter(username='senha-fraca').exists())
 
     def test_login_redireciona_ao_painel(self):
         resposta = self.client.post(reverse('login'), {
@@ -100,6 +142,154 @@ class AutenticacaoTests(BaseTestCase):
         self.assertContains(resposta, 'Usuário ou senha inválidos.', status_code=400)
 
 
+class US13ContatoTests(TestCase):
+    def test_mensagem_valida_e_salva_e_confirmada(self):
+        resposta = self.client.post(reverse('contato'), {
+            'nome': 'Marcos',
+            'email': 'marcos@example.com',
+            'mensagem': 'Gostaria de conhecer a Nexora.',
+        }, follow=True)
+
+        self.assertRedirects(resposta, reverse('contato'))
+        self.assertEqual(MensagemContato.objects.count(), 1)
+        self.assertContains(resposta, 'Mensagem enviada com sucesso.')
+
+    def test_mensagem_invalida_nao_e_salva(self):
+        for dados in (
+            {'nome': '', 'email': 'ana@example.com', 'mensagem': 'Mensagem'},
+            {'nome': 'Ana', 'email': 'invalido', 'mensagem': 'Mensagem'},
+            {'nome': 'Ana', 'email': 'ana@example.com', 'mensagem': ''},
+        ):
+            resposta = self.client.post(reverse('contato'), dados)
+            self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(MensagemContato.objects.count(), 0)
+
+    def test_admin_lista_mensagens_de_contato(self):
+        self.assertIn(MensagemContato, admin.site._registry)
+        administrador = User.objects.create_superuser(
+            username='administrador',
+            email='admin@example.com',
+            password='senha-forte-123',
+        )
+        self.assertTrue(administrador.is_superuser)
+        MensagemContato.objects.create(
+            nome='Carlos',
+            email='carlos@example.com',
+            mensagem='Solicitação de demonstração.',
+        )
+        self.client.force_login(administrador)
+        resposta = self.client.get('/admin/core/mensagemcontato/')
+        self.assertEqual(resposta.status_code, 200)
+        self.assertContains(resposta, 'Carlos')
+
+
+@override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+class US15EmpresaTests(BaseTestCase):
+    def test_proprietario_convida_novo_membro_e_email_contem_link(self):
+        self.client.login(username='carlos', password='senha-forte-123')
+        resposta = self.client.post(reverse('convites_empresa'), {
+            'email': 'membro@example.com',
+            'papel': PerfilEmpresa.Papel.MANUTENCAO,
+        })
+
+        convite = ConviteEmpresa.objects.get()
+        self.assertRedirects(resposta, reverse('convites_empresa'))
+        self.assertEqual(convite.empresa, self.usuario.perfil.empresa)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(str(convite.token), mail.outbox[0].body)
+
+    def test_novo_membro_aceita_convite_e_recebe_perfil_e_empresa(self):
+        convite = ConviteEmpresa.objects.create(
+            empresa=self.usuario.perfil.empresa,
+            email='membro@example.com',
+            papel=PerfilEmpresa.Papel.MANUTENCAO,
+            convidado_por=self.usuario,
+        )
+        resposta = self.client.post(reverse('convite_aceitar', args=[convite.token]), {
+            'nome_usuario': 'membro',
+            'senha_usuario': 'senha-segura-123',
+            'confirmar_senha': 'senha-segura-123',
+        })
+
+        membro = User.objects.get(username='membro')
+        convite.refresh_from_db()
+        self.assertRedirects(resposta, reverse('login'))
+        self.assertEqual(membro.email, convite.email)
+        self.assertEqual(membro.perfil.empresa, self.usuario.perfil.empresa)
+        self.assertEqual(membro.perfil.papel, PerfilEmpresa.Papel.MANUTENCAO)
+        self.assertIsNotNone(convite.aceita_em)
+
+    def test_usuario_existente_aceita_convite_e_migra_dados_da_empresa_individual(self):
+        empresa_antiga = self.outro_usuario.perfil.empresa
+        dispositivo = Dispositivo.objects.create(
+            dono=self.outro_usuario,
+            nome='Motor do outro usuário',
+            limite_kwh=Decimal('25.00'),
+        )
+        Parametro.objects.create(empresa=empresa_antiga, tarifa_kwh=Decimal('1.1000'))
+        convite = ConviteEmpresa.objects.create(
+            empresa=self.usuario.perfil.empresa,
+            email=self.outro_usuario.email,
+            papel=PerfilEmpresa.Papel.FINANCEIRO,
+            convidado_por=self.usuario,
+        )
+        self.client.login(username='outro', password='senha-forte-123')
+
+        resposta = self.client.post(reverse('convite_aceitar', args=[convite.token]))
+
+        convite.refresh_from_db()
+        dispositivo.refresh_from_db()
+        self.assertRedirects(resposta, reverse('painel'))
+        perfil_atualizado = User.objects.get(pk=self.outro_usuario.pk).perfil
+        self.assertEqual(perfil_atualizado.empresa, self.usuario.perfil.empresa)
+        self.assertEqual(dispositivo.empresa, self.usuario.perfil.empresa)
+        self.assertEqual(
+            Parametro.objects.get(empresa=self.usuario.perfil.empresa).tarifa_kwh,
+            Decimal('1.1000'),
+        )
+        self.assertIsNotNone(convite.aceita_em)
+        self.assertFalse(type(empresa_antiga).objects.filter(pk=empresa_antiga.pk).exists())
+
+    def test_membros_da_mesma_empresa_compartilham_dispositivos(self):
+        membro = User.objects.create_user('membro', password='senha-segura-123')
+        perfil = membro.perfil
+        empresa_individual = perfil.empresa
+        perfil.empresa = self.usuario.perfil.empresa
+        perfil.papel = PerfilEmpresa.Papel.MANUTENCAO
+        perfil.save()
+        empresa_individual.delete()
+        self.client.login(username='membro', password='senha-segura-123')
+
+        resposta = self.client.get(reverse('dispositivo_lista'))
+
+        self.assertContains(resposta, 'Prensa 02')
+        self.assertEqual(
+            self.client.get(reverse('dispositivo_detalhe', args=[self.dispositivo.pk])).status_code,
+            200,
+        )
+
+    def test_usuario_de_outra_empresa_nao_acessa_dispositivo(self):
+        self.client.login(username='outro', password='senha-forte-123')
+        resposta = self.client.get(reverse('dispositivo_detalhe', args=[self.dispositivo.pk]))
+        self.assertEqual(resposta.status_code, 404)
+
+    def test_gerente_de_manutencao_nao_acessa_parametros_financeiros(self):
+        perfil = self.usuario.perfil
+        perfil.papel = PerfilEmpresa.Papel.MANUTENCAO
+        perfil.save()
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        self.assertEqual(self.client.get(reverse('parametros')).status_code, 403)
+        self.assertNotContains(self.client.get(reverse('painel')), 'Tarifa</a>')
+
+    def test_perfil_nao_proprietario_nao_pode_convidar_membros(self):
+        perfil = self.usuario.perfil
+        perfil.papel = PerfilEmpresa.Papel.FINANCEIRO
+        perfil.save()
+        self.client.login(username='carlos', password='senha-forte-123')
+        self.assertEqual(self.client.get(reverse('convites_empresa')).status_code, 403)
+
+
 class ExclusaoContaTests(BaseTestCase):
     def test_tela_de_exclusao_exige_login(self):
         resposta = self.client.get(reverse('excluir_conta'))
@@ -123,7 +313,8 @@ class ExclusaoContaTests(BaseTestCase):
             dispositivo=self.dispositivo,
             valor_kwh=Decimal('123.45'),
         )
-        Parametro.objects.create(usuario=self.usuario)
+        empresa_id = self.usuario.perfil.empresa_id
+        Parametro.objects.create(empresa_id=empresa_id)
         self.client.login(username='carlos', password='senha-forte-123')
 
         resposta = self.client.post(
@@ -135,8 +326,40 @@ class ExclusaoContaTests(BaseTestCase):
         self.assertFalse(User.objects.filter(pk=self.usuario.pk).exists())
         self.assertFalse(Dispositivo.objects.filter(pk=self.dispositivo.pk).exists())
         self.assertFalse(Leitura.objects.filter(pk=leitura.pk).exists())
-        self.assertFalse(Parametro.objects.filter(usuario_id=self.usuario.pk).exists())
+        self.assertFalse(Parametro.objects.filter(empresa_id=empresa_id).exists())
         self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_excluir_proprietario_transfere_empresa_e_preserva_dispositivos_para_membros(self):
+        empresa = self.usuario.perfil.empresa
+        perfil_membro = self.outro_usuario.perfil
+        empresa_individual = perfil_membro.empresa
+        perfil_membro.empresa = empresa
+        perfil_membro.papel = PerfilEmpresa.Papel.MANUTENCAO
+        perfil_membro.save()
+        empresa_individual.delete()
+        leitura = Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('123.45'),
+        )
+        Parametro.objects.create(empresa=empresa)
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        resposta = self.client.post(
+            reverse('excluir_conta'),
+            {'senha_atual': 'senha-forte-123'},
+            follow=True,
+        )
+
+        self.dispositivo.refresh_from_db()
+        perfil_membro.refresh_from_db()
+        self.assertRedirects(resposta, reverse('login'))
+        self.assertFalse(User.objects.filter(pk=self.usuario.pk).exists())
+        self.assertEqual(perfil_membro.papel, PerfilEmpresa.Papel.PROPRIETARIO)
+        self.assertEqual(self.dispositivo.empresa, empresa)
+        self.assertIsNone(self.dispositivo.dono)
+        self.assertTrue(Leitura.objects.filter(pk=leitura.pk).exists())
+        self.assertTrue(Parametro.objects.filter(empresa=empresa).exists())
+        self.assertContains(resposta, 'a propriedade da empresa passou para outro')
 
 
 class US21DispositivosTests(BaseTestCase):
@@ -388,7 +611,7 @@ class US23AnomaliasTests(BaseTestCase):
     def test_custo_calculado_sobre_excedente(self):
         for valor in ('120', '150', '90'):
             Leitura.objects.create(dispositivo=self.dispositivo, valor_kwh=Decimal(valor))
-        Parametro.objects.create(usuario=self.usuario, tarifa_kwh=Decimal('0.8500'))
+        Parametro.objects.create(empresa=self.usuario.perfil.empresa, tarifa_kwh=Decimal('0.8500'))
 
         resumo = calcular_anomalias(self.usuario)
         item = resumo['com_anomalia'][0]
@@ -396,6 +619,27 @@ class US23AnomaliasTests(BaseTestCase):
         self.assertEqual(item['excedente_kwh'], Decimal('70.00'))
         self.assertEqual(item['custo'], Decimal('59.50'))
         self.assertEqual(resumo['custo_total'], Decimal('59.50'))
+
+    def test_payback_divide_custo_de_reparo_pelo_custo_mensal(self):
+        self.dispositivo.custo_reparo = Decimal('100.00')
+        self.dispositivo.save(update_fields=['custo_reparo'])
+        Leitura.objects.create(dispositivo=self.dispositivo, valor_kwh=Decimal('200.00'))
+
+        resumo = calcular_anomalias(self.usuario)
+
+        self.assertEqual(resumo['com_anomalia'][0]['custo'], Decimal('85.00'))
+        self.assertEqual(resumo['com_anomalia'][0]['payback_meses'], Decimal('1.18'))
+
+    def test_payback_so_aparece_com_custo_de_reparo_e_anomalia(self):
+        Leitura.objects.create(dispositivo=self.dispositivo, valor_kwh=Decimal('200.00'))
+        self.client.login(username='carlos', password='senha-forte-123')
+        resposta = self.client.get(reverse('painel'))
+        self.assertNotContains(resposta, 'Payback estimado')
+
+        self.dispositivo.custo_reparo = Decimal('50.00')
+        self.dispositivo.save(update_fields=['custo_reparo'])
+        resposta = self.client.get(reverse('painel'))
+        self.assertContains(resposta, 'Payback estimado do reparo preventivo')
 
     def test_ignora_leituras_de_meses_anteriores(self):
         Leitura.objects.create(
@@ -422,10 +666,16 @@ class US23AnomaliasTests(BaseTestCase):
         for valor in ('0', '-1'):
             resposta = self.client.post(reverse('parametros'), {'tarifa_kwh': valor})
             self.assertEqual(resposta.status_code, 200)
-        self.assertEqual(Parametro.objects.get(usuario=self.usuario).tarifa_kwh, Decimal('0.8500'))
+        self.assertEqual(
+            Parametro.objects.get(empresa=self.usuario.perfil.empresa).tarifa_kwh,
+            Decimal('0.8500'),
+        )
 
     def test_usuario_salva_tarifa(self):
         self.client.login(username='carlos', password='senha-forte-123')
         resposta = self.client.post(reverse('parametros'), {'tarifa_kwh': '1.2000'})
         self.assertRedirects(resposta, reverse('painel'))
-        self.assertEqual(Parametro.objects.get(usuario=self.usuario).tarifa_kwh, Decimal('1.2000'))
+        self.assertEqual(
+            Parametro.objects.get(empresa=self.usuario.perfil.empresa).tarifa_kwh,
+            Decimal('1.2000'),
+        )

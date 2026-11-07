@@ -29,10 +29,14 @@ A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimiza
 
 Depois de criar uma conta e entrar, o usuário pode:
 
-- Cadastrar dispositivos com localização e limite de consumo.
+- Cadastrar dispositivos com localização, limite de consumo e custo estimado de reparo preventivo.
 - Consultar o histórico recente de leituras de cada dispositivo.
-- Configurar a tarifa de energia em R$/kWh.
-- Acompanhar no painel os dispositivos e o custo estimado do consumo que exceder os limites no mês atual.
+- Configurar a tarifa de energia da empresa em R$/kWh.
+- Acompanhar no painel o custo mensal do consumo excedente e, quando há custo de reparo cadastrado, o payback estimado em meses.
+- Enviar mensagens pelo formulário Fale Conosco; a equipe consulta as mensagens no Django Admin.
+- Convidar novos membros para a empresa como Financeiro ou Gerente de Manutenção. O Gerente de Manutenção não pode acessar os parâmetros financeiros.
+
+O primeiro usuário de cada cadastro cria a empresa e recebe o perfil de Proprietário. Convites por e-mail podem ser aceitos por uma conta existente ou usados para criar uma conta; expiram após sete dias. Ao aceitar com uma conta existente, os dispositivos e a tarifa da empresa individual são associados à empresa convidante; dados de uma empresa com outros membros permanecem com essa empresa. Em desenvolvimento, os e-mails são exibidos no terminal; para envio real, configure `EMAIL_BACKEND` e `DEFAULT_FROM_EMAIL` no ambiente.
 
 Cada dispositivo possui um token próprio. Na página de detalhes do dispositivo, copie o token e envie leituras para `POST /api/leituras/` como JSON:
 
@@ -262,14 +266,15 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 ---
 
-- **US11 — Criar conta:** cadastro com nome de usuário, e-mail e senha; o nome de usuário é único e a senha é armazenada com hash pelo Django.
+- **US11 — Criar conta:** cadastro com nome de usuário, e-mail, empresa, confirmação e validação da senha; usuário único e senha armazenada com hash pelo Django.
 - **US12 — Entrar e sair da plataforma:** autenticação, redirecionamento ao painel após login, proteção das áreas privadas e encerramento de sessão via logout.
-- **US21 — Cadastrar e listar dispositivos:** cadastro de dispositivos com localização e limite de consumo, com acesso restrito aos dispositivos do próprio usuário.
+- **US13 — Fale Conosco:** validação e persistência das mensagens, confirmação de envio e consulta pela equipe no Django Admin.
+- **US15 — Perfis e isolamento por empresa:** dados compartilhados apenas entre membros da mesma empresa; Proprietário pode enviar convites para novos membros com perfil Financeiro ou Gerente de Manutenção, sem acesso financeiro para o gerente.
+- **US03 — Traduzir anomalias em custo e payback:** custo mensal calculado sobre o consumo excedente e prazo estimado de retorno do reparo preventivo quando há custo cadastrado.
+- **US21 — Cadastrar e listar dispositivos:** cadastro de dispositivos com localização e limite de consumo, com acesso restrito à empresa do usuário.
 - **US22 — Registrar e consultar leituras:** recebimento de leituras pela API autenticada com token do dispositivo e consulta do histórico recente.
-- **US23 — Acompanhar custos de anomalias:** configuração de tarifa de energia e painel mensal que calcula o custo do consumo acima do limite dos dispositivos.
+- **US23 — Acompanhar custos de anomalias:** configuração de tarifa compartilhada pela empresa e painel mensal que calcula o custo do consumo acima do limite dos dispositivos.
 - **US18 — Gerenciar ordens de serviço:** criação de rascunhos por dispositivo, aprovação com registro do responsável e horário, acompanhamento da execução e conclusão com causa, ação realizada e tempo de parada.
-
-> **Observação:** a história de Fale Conosco não está listada como implementada porque o formulário ainda não salva as mensagens no sistema.
 
 ### 🎥 Demonstrações em Vídeo
 

@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 
 from django.contrib.auth.models import User
@@ -7,14 +8,113 @@ from django.db import models
 from django.utils import timezone
 
 
+class Empresa(models.Model):
+    nome = models.CharField('nome da empresa', max_length=150)
+    criada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['nome']
+        verbose_name = 'empresa'
+        verbose_name_plural = 'empresas'
+
+    def __str__(self):
+        return self.nome
+
+
+class PerfilEmpresa(models.Model):
+    class Papel(models.TextChoices):
+        PROPRIETARIO = 'proprietario', 'Proprietário'
+        FINANCEIRO = 'financeiro', 'Financeiro'
+        MANUTENCAO = 'manutencao', 'Gerente de Manutenção'
+
+    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='perfis')
+    papel = models.CharField(
+        'perfil de acesso',
+        max_length=20,
+        choices=Papel.choices,
+        default=Papel.PROPRIETARIO,
+    )
+
+    class Meta:
+        verbose_name = 'perfil da empresa'
+        verbose_name_plural = 'perfis da empresa'
+
+    def __str__(self):
+        return f'{self.usuario} - {self.empresa} ({self.get_papel_display()})'
+
+
+class ConviteEmpresa(models.Model):
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='convites')
+    email = models.EmailField('e-mail convidado')
+    papel = models.CharField(
+        'perfil de acesso',
+        max_length=20,
+        choices=[
+            (PerfilEmpresa.Papel.FINANCEIRO, 'Financeiro'),
+            (PerfilEmpresa.Papel.MANUTENCAO, 'Gerente de Manutenção'),
+        ],
+    )
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    convidado_por = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='convites_empresa_enviados',
+    )
+    criada_em = models.DateTimeField(auto_now_add=True)
+    aceita_em = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-criada_em']
+        verbose_name = 'convite para empresa'
+        verbose_name_plural = 'convites para empresa'
+
+    def __str__(self):
+        return f'{self.email} - {self.empresa}'
+
+    @property
+    def expirado(self):
+        return timezone.now() - self.criada_em > timedelta(days=7)
+
+
+class MensagemContato(models.Model):
+    nome = models.CharField('nome', max_length=100)
+    email = models.EmailField('e-mail')
+    mensagem = models.TextField('mensagem', max_length=5000)
+    enviada_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-enviada_em']
+        verbose_name = 'mensagem de contato'
+        verbose_name_plural = 'mensagens de contato'
+
+    def __str__(self):
+        return f'{self.nome} - {self.email}'
+
+
 class Dispositivo(models.Model):
-    dono = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dispositivos')
+    dono = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='dispositivos',
+        null=True,
+        blank=True,
+    )
+    empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='dispositivos')
     nome = models.CharField('nome do dispositivo', max_length=100)
     localizacao = models.CharField('localização', max_length=150, blank=True)
     limite_kwh = models.DecimalField(
         'limite de consumo (kWh)',
         max_digits=10,
         decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    custo_reparo = models.DecimalField(
+        'custo estimado do reparo preventivo (R$)',
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
         validators=[MinValueValidator(Decimal('0.01'))],
     )
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
@@ -27,6 +127,11 @@ class Dispositivo(models.Model):
 
     def __str__(self):
         return self.nome
+
+    def save(self, *args, **kwargs):
+        if not self.empresa_id and self.dono_id:
+            self.empresa = self.dono.perfil.empresa
+        super().save(*args, **kwargs)
 
 
 class Leitura(models.Model):
@@ -49,7 +154,7 @@ class Leitura(models.Model):
 
 
 class Parametro(models.Model):
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='parametro')
+    empresa = models.OneToOneField(Empresa, on_delete=models.CASCADE, related_name='parametro')
     tarifa_kwh = models.DecimalField(
         'tarifa de energia (R$/kWh)',
         max_digits=8,
@@ -63,7 +168,7 @@ class Parametro(models.Model):
         verbose_name_plural = 'parâmetros financeiros'
 
     def __str__(self):
-        return f'Parâmetros de {self.usuario}'
+        return f'Parâmetros de {self.empresa}'
 
 
 class OrdemServico(models.Model):

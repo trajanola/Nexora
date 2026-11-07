@@ -7,6 +7,12 @@ urlpatterns = [
     path('o-que-fazemos/', views.servicos, name='servicos'),
     path('fale-conosco/', views.contato, name='contato'),
     path('cadastro/', views.Cadastro.as_view(), name='cadastro'),
+    path('convites/empresa/', views.ConvitesEmpresaView.as_view(), name='convites_empresa'),
+    path(
+        'convites/<uuid:token>/',
+        views.ConviteAceitarView.as_view(),
+        name='convite_aceitar',
+    ),
     path('login/', views.Logar.as_view(), name='login'),
     path('logout/', views.Logout.as_view(), name='logout'),
     path('conta/excluir/', views.ExcluirConta.as_view(), name='excluir_conta'),

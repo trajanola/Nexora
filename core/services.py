@@ -5,13 +5,13 @@ from django.db.models import Count, F, Q, Sum
 from django.db import transaction
 from django.utils import timezone
 
-from .models import OrdemServico, Parametro
+from .models import Dispositivo, OrdemServico, Parametro
 
 CENTAVOS = Decimal('0.01')
 
 
 def obter_parametro(usuario):
-    parametro, _ = Parametro.objects.get_or_create(usuario=usuario)
+    parametro, _ = Parametro.objects.get_or_create(empresa=usuario.perfil.empresa)
     return parametro
 
 
@@ -27,7 +27,7 @@ def calcular_anomalias(usuario, agora=None):
         leituras__registrado_em__gte=inicio,
         leituras__valor_kwh__gt=F('limite_kwh'),
     )
-    dispositivos = usuario.dispositivos.annotate(
+    dispositivos = Dispositivo.objects.filter(empresa=usuario.perfil.empresa).annotate(
         qtd_anomalias=Count('leituras', filter=acima_do_limite),
         soma_anomalias=Sum('leituras__valor_kwh', filter=acima_do_limite),
     )
@@ -37,11 +37,17 @@ def calcular_anomalias(usuario, agora=None):
         quantidade = dispositivo.qtd_anomalias or 0
         soma = dispositivo.soma_anomalias or Decimal('0')
         excedente = soma - dispositivo.limite_kwh * quantidade
+        custo = (excedente * tarifa).quantize(CENTAVOS)
         itens.append({
             'dispositivo': dispositivo,
             'qtd_anomalias': quantidade,
             'excedente_kwh': excedente,
-            'custo': (excedente * tarifa).quantize(CENTAVOS),
+            'custo': custo,
+            'payback_meses': (
+                (dispositivo.custo_reparo / custo).quantize(CENTAVOS)
+                if dispositivo.custo_reparo is not None and custo > 0
+                else None
+            ),
         })
 
     com_anomalia = [item for item in itens if item['excedente_kwh'] > 0]

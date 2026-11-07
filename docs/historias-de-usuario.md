@@ -17,14 +17,14 @@ O documento registra as histórias planejadas e implementadas. Além da infraest
 
 | ID | Título | Persona | Épico | Status |
 |---|---|---|---|---|
-| US11 | Criar conta de usuário | Marcos | 1 | Entrega 03 |
+| US11 | Criar conta de usuário | Marcos | 1 | Implementada (Entrega 03) |
 | US12 | Entrar e sair da plataforma (login e logout) | Ana | 1 | Entrega 03 |
-| US13 | Enviar mensagem pelo Fale Conosco | Marcos | 1 | Entrega 03 |
+| US13 | Enviar mensagem pelo Fale Conosco | Marcos | 1 | Implementada (Entrega 03) |
 | US14 | Conhecer a Nexora pelo site institucional | Marcos | 1 | Já existente (Entrega 02) |
-| US15 | Perfis de acesso e isolamento de dados por empresa | Ana | 1 | Backlog |
+| US15 | Perfis de acesso e isolamento de dados por empresa | Ana | 1 | Implementada (Entrega 04) |
 | US16 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Backlog |
 | US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Backlog |
-| US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Backlog |
+| US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Implementada (Entrega 04) |
 | US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Implementada (Entrega 04) |
 | US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
 | US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
@@ -183,9 +183,9 @@ Funcionalidade: Site institucional
 
 ---
 
-# Backlog (Entrega 04 em diante)
+# Histórias implementadas na Entrega 04 e backlog restante
 
-## US15: Perfis de acesso e isolamento de dados por empresa
+## US15: Perfis de acesso e isolamento de dados por empresa (Implementada)
 
 **Persona:** Ana | **Épico 1:** Fundamentação Técnica Django
 
@@ -206,6 +206,12 @@ Funcionalidade: Perfis e isolamento de dados
     Dado que o usuário tem perfil "Gerente de Manutenção"
     Quando tenta acessar a tela de parâmetros financeiros
     Então o sistema retorna HTTP 403
+
+  Cenário: Proprietário convida um membro
+    Dado que o usuário tem perfil "Proprietário"
+    Quando envia um convite por e-mail para um perfil Financeiro ou Gerente de Manutenção
+    Então o sistema envia um link de convite válido por sete dias
+    E o membro aceito passa a compartilhar os dados da empresa
 ```
 
 ---
@@ -285,7 +291,7 @@ Funcionalidade: Configuração de parâmetros financeiros
 
 ---
 
-## US03: Tradutor de anomalias em custo financeiro (R$)
+## US03: Tradutor de anomalias em custo financeiro (R$) (Implementada)
 
 **Persona:** Marcos | **Épico 2:** Tradução Financeira e Impacto ESG
 
@@ -319,6 +325,8 @@ Funcionalidade: Tradução de anomalias em custo financeiro
 ```
 
 ---
+
+# Backlog (Entrega 04 em diante)
 
 ## US18: Ciclo de vida da Ordem de Serviço corretiva
 

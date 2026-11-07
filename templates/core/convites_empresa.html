@@ -1,0 +1,28 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Membros da empresa{% endblock %}
+{% block cabecalho %}Membros da empresa{% endblock %}
+{% block subtitulo %}Convide novos usuários para {{ request.user.perfil.empresa.nome }}.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <h2>Convidar membro</h2>
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Enviar convite</button>
+    </form>
+</section>
+<section class="page-card">
+    <h2>Convites enviados</h2>
+    {% if convites %}
+        <ul>
+            {% for convite in convites %}
+                <li>{{ convite.email }} — {{ convite.get_papel_display }}
+                    {% if convite.aceita_em %}(aceito){% elif convite.expirado %}(expirado){% else %}(pendente){% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>Nenhum convite enviado.</p>
+    {% endif %}
+</section>
+{% endblock %}

@@ -15,12 +15,17 @@
         <p>Canais de suporte e comunicação institucional.</p>
     </header>
     <main class="page-main">
+        {% if messages %}
+            <ul class="mensagens">
+                {% for mensagem in messages %}
+                    <li class="{{ mensagem.tags }}">{{ mensagem }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
         <section class="page-card contact-card">
             <form class="page-form" method="post">
                 {% csrf_token %}
-                <p><label for="nome">Nome:</label><input id="nome" type="text" name="nome" required></p>
-                <p><label for="email">E-mail:</label><input id="email" type="email" name="email" required></p>
-                <p><label for="mensagem">Mensagem:</label><textarea id="mensagem" name="mensagem" rows="4" required></textarea></p>
+                {{ form.as_p }}
                 <button type="submit">Enviar Mensagem</button>
             </form>
         </section>

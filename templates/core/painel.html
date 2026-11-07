@@ -19,6 +19,9 @@
                 <strong>{{ item.dispositivo.nome }}</strong><br>
                 Atenção: esta anomalia gera um custo adicional estimado de <strong>R$ {{ item.custo|floatformat:2 }}</strong> neste mês
                 ({{ item.excedente_kwh|floatformat:2 }} kWh acima do limite em {{ item.qtd_anomalias }} leitura{{ item.qtd_anomalias|pluralize }}).
+                {% if item.payback_meses != None %}
+                    Payback estimado do reparo preventivo: <strong>{{ item.payback_meses|floatformat:2 }} meses</strong>.
+                {% endif %}
             </div>
         {% endfor %}
     {% else %}

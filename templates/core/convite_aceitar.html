@@ -1,0 +1,38 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aceitar convite - Nexora</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <h1>Convite para {{ convite.empresa.nome }}</h1>
+        <p>Crie sua conta para participar como {{ convite.get_papel_display }}.</p>
+    </header>
+    <main class="page-main">
+        <section class="page-card">
+            {% if usuario_existente %}
+                {% if request.user.is_authenticated %}
+                    <p>Ao aceitar, sua conta passará a pertencer à empresa convidante. Se sua empresa atual tiver outros membros, os dados dela continuarão com essa empresa.</p>
+                    <form class="page-form" method="post">
+                        {% csrf_token %}
+                        <button type="submit">Aceitar convite</button>
+                    </form>
+                {% else %}
+                    <p>Este e-mail já possui uma conta. Entre com ela para aceitar o convite.</p>
+                    <a class="action-link" href="{{ login_url }}">Entrar e aceitar convite</a>
+                {% endif %}
+            {% else %}
+                <form class="page-form" method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit">Criar conta e aceitar convite</button>
+                </form>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

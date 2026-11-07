@@ -15,7 +15,12 @@
         <nav class="app-nav" aria-label="Navegação da plataforma">
             <a class="action-link" href="{% url 'painel' %}">Painel</a>
             <a class="action-link" href="{% url 'dispositivo_lista' %}">Dispositivos</a>
-            <a class="action-link" href="{% url 'parametros' %}">Tarifa</a>
+            {% if request.user.perfil.papel != 'manutencao' %}
+                <a class="action-link" href="{% url 'parametros' %}">Tarifa</a>
+            {% endif %}
+            {% if request.user.perfil.papel == 'proprietario' %}
+                <a class="action-link" href="{% url 'convites_empresa' %}">Membros</a>
+            {% endif %}
             <form method="post" action="{% url 'logout' %}">
                 {% csrf_token %}
                 <button type="submit">Sair</button>

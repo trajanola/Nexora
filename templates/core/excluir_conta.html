@@ -5,7 +5,11 @@
 {% block conteudo %}
 <section class="page-card delete-account-card">
     <h2>Esta ação é permanente</h2>
-    <p>Ao excluir sua conta, também serão apagados todos os dispositivos, leituras e configurações de tarifa associados a ela.</p>
+    {% if request.user.perfil.empresa.perfis.count > 1 %}
+        <p>Ao excluir sua conta, seus dispositivos e demais dados da empresa continuarão disponíveis aos outros membros. Se você for Proprietário, a propriedade será transferida para um membro.</p>
+    {% else %}
+        <p>Ao excluir sua conta, também serão apagados todos os dispositivos, leituras e configurações de tarifa da empresa.</p>
+    {% endif %}
     <form class="page-form" method="post">
         {% csrf_token %}
         <p>

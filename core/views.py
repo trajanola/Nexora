@@ -14,6 +14,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -48,6 +49,10 @@ from .services import (
 
 def home(request):
     return render(request, 'core/index.html')
+
+
+def health(request):
+    return JsonResponse({'status': 'ok'})
 
 
 def sobre(request):
@@ -468,29 +473,125 @@ def registrar_leitura(request):
     except (Dispositivo.DoesNotExist, ValueError, TypeError, ValidationError):
         return JsonResponse({'erro': 'Dispositivo não encontrado.'}, status=404)
 
+    if 'leituras' in dados:
+        return _registrar_leituras_em_lote(dispositivo, dados['leituras'])
+
+    existente = _leitura_existente(dados, dispositivo)
+    if existente:
+        return JsonResponse(_serializar_leitura(existente, duplicada=True), status=200)
+
+    leitura, erro = _validar_leitura(dados, dispositivo)
+    if erro:
+        return JsonResponse({'erro': erro}, status=400)
+    leitura, criada = _salvar_leitura(leitura)
+    return JsonResponse(
+        _serializar_leitura(leitura, duplicada=not criada),
+        status=201 if criada else 200,
+    )
+
+
+def _validar_leitura(dados, dispositivo):
     try:
         valor = Decimal(str(dados.get('valor_kwh')))
         if not valor.is_finite():
             raise InvalidOperation
         valor = valor.quantize(Decimal('0.01'))
-    except (InvalidOperation, ValueError):
-        return JsonResponse({'erro': 'valor_kwh deve ser um número válido.'}, status=400)
+    except (InvalidOperation, ValueError, TypeError):
+        return None, 'valor_kwh deve ser um número válido.'
 
-    leitura = Leitura(dispositivo=dispositivo, valor_kwh=valor)
+    id_externo = dados.get('id_externo')
+    if id_externo is not None:
+        if not isinstance(id_externo, str) or not id_externo.strip():
+            return None, 'id_externo deve ser um texto não vazio.'
+        id_externo = id_externo.strip()
+
+    registrado_em = dados.get('registrado_em')
+    if registrado_em is not None:
+        if not isinstance(registrado_em, str):
+            return None, 'registrado_em deve ser uma data ISO válida.'
+        registrado_em = parse_datetime(registrado_em)
+        if registrado_em is None:
+            return None, 'registrado_em deve ser uma data ISO válida.'
+        if timezone.is_naive(registrado_em):
+            registrado_em = timezone.make_aware(registrado_em)
+
+    campos = {'dispositivo': dispositivo, 'valor_kwh': valor}
+    if id_externo is not None:
+        campos['id_externo'] = id_externo
+    if registrado_em is not None:
+        campos['registrado_em'] = registrado_em
+    leitura = Leitura(**campos)
     try:
         leitura.full_clean()
     except ValidationError as erro:
-        return JsonResponse(
-            {'erro': {campo: [str(item) for item in itens] for campo, itens in erro.message_dict.items()}},
-            status=400,
-        )
+        return None, {
+            campo: [str(item) for item in itens]
+            for campo, itens in erro.message_dict.items()
+        }
+    return leitura, None
+
+
+def _salvar_leitura(leitura):
     leitura.save()
-    return JsonResponse({
+    return leitura, True
+
+
+def _leitura_existente(dados, dispositivo):
+    id_externo = dados.get('id_externo')
+    if not isinstance(id_externo, str) or not id_externo.strip():
+        return None
+    return Leitura.objects.filter(
+        dispositivo=dispositivo,
+        id_externo=id_externo.strip(),
+    ).first()
+
+
+def _serializar_leitura(leitura, *, duplicada=False):
+    resposta = {
         'id': leitura.pk,
-        'dispositivo': dispositivo.nome,
+        'id_externo': leitura.id_externo,
+        'dispositivo': leitura.dispositivo.nome,
         'valor_kwh': str(leitura.valor_kwh),
         'registrado_em': leitura.registrado_em.isoformat(),
-    }, status=201)
+    }
+    if duplicada:
+        resposta['duplicada'] = True
+    return resposta
+
+
+def _registrar_leituras_em_lote(dispositivo, dados):
+    if not isinstance(dados, list) or not dados:
+        return JsonResponse(
+            {'erro': 'leituras deve ser uma lista não vazia.'},
+            status=400,
+        )
+
+    resultados = []
+    erros = []
+    for indice, item in enumerate(dados):
+        if not isinstance(item, dict):
+            erros.append({'indice': indice, 'erro': 'Cada leitura deve ser um objeto JSON.'})
+            continue
+        existente = _leitura_existente(item, dispositivo)
+        if existente:
+            resultados.append(_serializar_leitura(existente, duplicada=True))
+            continue
+        leitura, erro = _validar_leitura(item, dispositivo)
+        if erro:
+            erros.append({'indice': indice, 'erro': erro})
+            continue
+        leitura, criada = _salvar_leitura(leitura)
+        resultados.append(_serializar_leitura(leitura, duplicada=not criada))
+
+    return JsonResponse(
+        {
+            'criadas': sum('duplicada' not in item for item in resultados),
+            'duplicadas': sum('duplicada' in item for item in resultados),
+            'erros': erros,
+            'leituras': resultados,
+        },
+        status=201 if not erros else 207,
+    )
 
 
 class Painel(LoginRequiredMixin, TemplateView):

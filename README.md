@@ -49,6 +49,17 @@ curl -X POST http://127.0.0.1:8000/api/leituras/ \
 
 O token autentica o dispositivo na API; mantenha-o privado. O custo exibido no painel considera somente a parcela de cada leitura acima do limite, multiplicada pela tarifa configurada.
 
+Para sincronizar várias leituras, envie uma lista no mesmo endpoint. O campo `id_externo` torna o envio idempotente:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/leituras/ \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: <token-do-dispositivo>" \
+  -d '{"leituras":[{"id_externo":"sensor-001-0001","valor_kwh":42.7},{"id_externo":"sensor-001-0002","valor_kwh":43.1}]}'
+```
+
+Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeitada; nesse caso a API responde `207`. Reenviar o mesmo `id_externo` não cria uma duplicata.
+
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
 - Python
@@ -155,6 +166,18 @@ python manage.py runserver
 ```
 
 Abra http://127.0.0.1:8000 no navegador. O painel administrativo fica em http://127.0.0.1:8000/admin.
+
+### Deploy no Render
+
+O arquivo `render.yaml` descreve o Web Service, o PostgreSQL, as migrations e a coleta de arquivos estáticos. O Render deve receber:
+
+- `SECRET_KEY`: segredo gerado ou armazenado pelo Render;
+- `DEBUG=False`;
+- `ALLOWED_HOSTS`: o domínio `onrender.com` do serviço;
+- `CSRF_TRUSTED_ORIGINS`: a URL HTTPS completa do serviço;
+- `DATABASE_URL`: preenchida automaticamente quando o banco do blueprint for criado.
+
+Localmente, a ausência de `DATABASE_URL` mantém o SQLite. No Render, a variável seleciona o PostgreSQL sem alteração de código.
 
 Para parar o servidor, use `Ctrl+C` no terminal.
 

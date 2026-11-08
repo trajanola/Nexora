@@ -445,6 +445,48 @@ class US22LeiturasTests(BaseTestCase):
         )
         self.assertEqual(resposta.status_code, 201)
 
+    def test_api_registra_leituras_em_lote_e_rejeita_item_invalido(self):
+        resposta = self.enviar_leitura({
+            'leituras': [
+                {'id_externo': 'sensor-1', 'valor_kwh': 42.7},
+                {'id_externo': 'sensor-2', 'valor_kwh': -1},
+                {'id_externo': 'sensor-3', 'valor_kwh': 12.5},
+            ],
+        }, self.dispositivo.token)
+
+        self.assertEqual(resposta.status_code, 207)
+        corpo = resposta.json()
+        self.assertEqual(corpo['criadas'], 2)
+        self.assertEqual(len(corpo['erros']), 1)
+        self.assertEqual(Leitura.objects.count(), 2)
+
+    def test_api_nao_duplica_leitura_com_id_externo_repetido(self):
+        corpo = {
+            'leituras': [
+                {'id_externo': 'sensor-1', 'valor_kwh': 42.7},
+            ],
+        }
+        primeira = self.enviar_leitura(corpo, self.dispositivo.token)
+        segunda = self.enviar_leitura(corpo, self.dispositivo.token)
+
+        self.assertEqual(primeira.status_code, 201)
+        self.assertEqual(segunda.status_code, 201)
+        self.assertEqual(segunda.json()['duplicadas'], 1)
+        self.assertEqual(Leitura.objects.count(), 1)
+
+    def test_api_aceita_data_iso_na_leitura_em_lote(self):
+        resposta = self.enviar_leitura({
+            'leituras': [{
+                'id_externo': 'sensor-1',
+                'valor_kwh': 15,
+                'registrado_em': '2026-11-08T12:00:00-03:00',
+            }],
+        }, self.dispositivo.token)
+
+        self.assertEqual(resposta.status_code, 201)
+        leitura = Leitura.objects.get()
+        self.assertEqual(leitura.registrado_em.utcoffset(), timedelta(0))
+
     def test_historico_mostra_leituras_mais_recentes_primeiro(self):
         agora = timezone.now()
         Leitura.objects.create(

@@ -136,6 +136,12 @@ class Dispositivo(models.Model):
 
 class Leitura(models.Model):
     dispositivo = models.ForeignKey(Dispositivo, on_delete=models.CASCADE, related_name='leituras')
+    id_externo = models.CharField(
+        'identificador externo',
+        max_length=100,
+        null=True,
+        blank=True,
+    )
     valor_kwh = models.DecimalField(
         'consumo (kWh)',
         max_digits=10,
@@ -148,6 +154,12 @@ class Leitura(models.Model):
         ordering = ['-registrado_em']
         verbose_name = 'leitura'
         verbose_name_plural = 'leituras'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['dispositivo', 'id_externo'],
+                name='leitura_dispositivo_id_externo_uniq',
+            ),
+        ]
 
     def __str__(self):
         return f'{self.dispositivo} - {self.valor_kwh} kWh'

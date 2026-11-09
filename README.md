@@ -342,7 +342,7 @@ As histórias abaixo estão no backlog e **ainda não foram implementadas**. Os 
 
 -  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
--  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
+-  Deploy em Desenvolvimento: [Clique Aqui](https://nexora-oadm.onrender.com/)
 
 ## 🐞 &nbsp;Encontrou um bug?
 - Abra uma issue na aba **[Issues](https://github.com/trajanola/Nexora/issues)** do repositório e inclua os passos para reproduzir o problema.

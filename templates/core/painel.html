@@ -7,8 +7,48 @@
     <div class="cartao"><span>Dispositivos</span><strong>{{ resumo.itens|length }}</strong></div>
     <div class="cartao"><span>Com anomalia no mês</span><strong>{{ resumo.com_anomalia|length }}</strong></div>
     <div class="cartao"><span>Custo adicional estimado</span><strong>R$ {{ resumo.custo_total|floatformat:2 }}</strong></div>
-    <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
+    {% if request.user.perfil.papel != 'manutencao' %}
+        <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
+    {% endif %}
+    <div class="cartao"><span>Economia de energia</span><strong>{{ eficiencia.economia_kwh|floatformat:2 }} kWh</strong></div>
+    <div class="cartao"><span>CO₂e evitado estimado</span><strong>{{ eficiencia.co2e_evitado_kg|floatformat:2 }} kg</strong></div>
 </div>
+
+<section class="page-card efficiency-card" aria-labelledby="efficiency-title">
+    <h2 id="efficiency-title">Eficiência energética e emissões evitadas</h2>
+    <p>Comparação do mês atual com o mesmo período do mês anterior. O fator configurado é {{ eficiencia.fator_emissao_co2e|floatformat:6 }} kg CO₂e/kWh; o resultado é uma estimativa.</p>
+    <div class="efficiency-chart" role="group" aria-label="Comparação de consumo mensal">
+        <div>
+            <label for="consumo-anterior">Mês anterior (mesmo período)</label>
+            <span>{{ eficiencia.consumo_anterior_kwh|floatformat:2 }} kWh</span>
+            <progress id="consumo-anterior" max="{{ eficiencia.maximo_grafico_kwh }}" value="{{ eficiencia.consumo_anterior_kwh }}">{{ eficiencia.consumo_anterior_kwh }}</progress>
+        </div>
+        <div>
+            <label for="consumo-atual">Mês atual</label>
+            <span>{{ eficiencia.consumo_atual_kwh|floatformat:2 }} kWh</span>
+            <progress id="consumo-atual" max="{{ eficiencia.maximo_grafico_kwh }}" value="{{ eficiencia.consumo_atual_kwh }}">{{ eficiencia.consumo_atual_kwh }}</progress>
+        </div>
+    </div>
+    {% if eficiencia.economia_kwh %}
+        <p>Redução observada: <strong>{{ eficiencia.pontuacao_eficiencia|floatformat:2 }}%</strong> ({{ eficiencia.economia_kwh|floatformat:2 }} kWh).</p>
+    {% else %}
+        <p class="vazio">Não houve redução de consumo no período comparado.</p>
+    {% endif %}
+</section>
+
+{% if simulacao_bndes_form %}
+    <section class="page-card bndes-card" aria-labelledby="bndes-title">
+        <h2 id="bndes-title">Estimativa de economia em crédito</h2>
+        <p>A simulação aplica um spread estimado de até 1,5 ponto percentual ao ano, proporcional à pontuação de eficiência de {{ eficiencia.pontuacao_eficiencia|floatformat:2 }}%. Não é oferta, aprovação ou condição oficial do BNDES.</p>
+        <form class="page-form bndes-form" method="get" action="{% url 'painel' %}">
+            {{ simulacao_bndes_form.as_p }}
+            <button type="submit">Simular economia anual</button>
+        </form>
+        {% if simulacao_bndes %}
+            <p class="bndes-result">Economia anual estimada para R$ {{ simulacao_bndes_form.valor_financiado.value|floatformat:2 }}: <strong>R$ {{ simulacao_bndes.economia_anual|floatformat:2 }}</strong>, equivalente a {{ simulacao_bndes.spread_estimado_pp|floatformat:2 }} p.p. ao ano.</p>
+        {% endif %}
+    </section>
+{% endif %}
 
 <section class="page-card">
     {% if not resumo.itens %}
@@ -26,6 +66,23 @@
         {% endfor %}
     {% else %}
         <div class="ok-box">Todos os dispositivos estão dentro do limite: não há custos adicionais por anomalias neste mês.</div>
+    {% endif %}
+</section>
+
+<section class="page-card occurrences-card" aria-labelledby="occurrences-title">
+    <h2 id="occurrences-title">Diagnósticos de manutenção</h2>
+    {% if ocorrencias %}
+        {% for ocorrencia in ocorrencias %}
+            <article class="alerta occurrence-alert">
+                <strong>{{ ocorrencia.dispositivo.nome }} · Severidade {{ ocorrencia.get_severidade_display }}</strong>
+                <p>{{ ocorrencia.mensagem_prescritiva }}</p>
+                {% if ocorrencia.ordem_servico %}
+                    <a href="{% url 'ordem_servico_detalhe' ocorrencia.ordem_servico_id %}">Abrir OS #{{ ocorrencia.ordem_servico_id }}</a>
+                {% endif %}
+            </article>
+        {% endfor %}
+    {% else %}
+        <p class="vazio">Nenhum diagnóstico multivariável registrado.</p>
     {% endif %}
 </section>
 {% endblock %}

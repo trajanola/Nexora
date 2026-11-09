@@ -4,8 +4,10 @@ from .models import (
     ConviteEmpresa,
     Dispositivo,
     Empresa,
+    EventoSinal,
     Leitura,
     MensagemContato,
+    OcorrenciaAnomalia,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
@@ -34,7 +36,30 @@ class LeituraAdmin(admin.ModelAdmin):
 
 @admin.register(Parametro)
 class ParametroAdmin(admin.ModelAdmin):
-    list_display = ('empresa', 'tarifa_kwh')
+    list_display = ('empresa', 'tarifa_kwh', 'fator_emissao_co2e')
+
+
+@admin.register(EventoSinal)
+class EventoSinalAdmin(admin.ModelAdmin):
+    list_display = ('dispositivo', 'tipo', 'valor', 'unidade', 'registrado_em')
+    list_filter = ('tipo', 'dispositivo__empresa')
+    search_fields = ('dispositivo__nome', 'id_externo')
+    readonly_fields = ('dispositivo', 'tipo', 'valor', 'unidade', 'id_externo', 'registrado_em')
+
+
+@admin.register(OcorrenciaAnomalia)
+class OcorrenciaAnomaliaAdmin(admin.ModelAdmin):
+    list_display = ('dispositivo', 'causa', 'severidade', 'criada_em', 'ordem_servico')
+    list_filter = ('severidade', 'dispositivo__empresa')
+    search_fields = ('causa', 'mensagem_prescritiva', 'dispositivo__nome')
+    readonly_fields = (
+        'dispositivo',
+        'causa',
+        'mensagem_prescritiva',
+        'severidade',
+        'criada_em',
+        'ordem_servico',
+    )
 
 
 @admin.register(OrdemServico)

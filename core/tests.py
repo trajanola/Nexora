@@ -12,13 +12,19 @@ from django.utils import timezone
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    EventoSinal,
     Leitura,
     MensagemContato,
+    OcorrenciaAnomalia,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
 )
-from .services import calcular_anomalias
+from .services import (
+    calcular_anomalias,
+    calcular_eficiencia_energetica,
+    estimar_economia_bndes,
+)
 
 
 class BaseTestCase(TestCase):
@@ -35,6 +41,14 @@ class BaseTestCase(TestCase):
             localizacao='Galpão 1',
             limite_kwh=Decimal('100.00'),
         )
+
+
+class HealthcheckTests(TestCase):
+    def test_healthcheck_valida_conexao_com_banco(self):
+        resposta = self.client.get(reverse('health'))
+
+        self.assertEqual(resposta.status_code, 200)
+        self.assertEqual(resposta.json(), {'status': 'ok'})
 
 
 class AutenticacaoTests(BaseTestCase):
@@ -721,3 +735,233 @@ class US23AnomaliasTests(BaseTestCase):
             Parametro.objects.get(empresa=self.usuario.perfil.empresa).tarifa_kwh,
             Decimal('1.2000'),
         )
+
+
+class US04EficienciaEnergeticaTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.agora = timezone.now()
+        inicio_atual = self.agora.replace(
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+        inicio_anterior = (inicio_atual - timedelta(days=1)).replace(day=1)
+        inicio_periodo_anterior = inicio_anterior + (
+            self.agora - inicio_atual
+        ) / 2
+        Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('100.00'),
+            registrado_em=inicio_periodo_anterior,
+        )
+        Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('20.00'),
+            registrado_em=self.agora - timedelta(seconds=1),
+        )
+        Parametro.objects.create(
+            empresa=self.usuario.perfil.empresa,
+            fator_emissao_co2e=Decimal('0.0817'),
+        )
+
+    def test_compara_periodos_equivalentes_e_calcula_co2e(self):
+        eficiencia = calcular_eficiencia_energetica(self.usuario, agora=self.agora)
+
+        self.assertEqual(eficiencia['consumo_anterior_kwh'], Decimal('100.00'))
+        self.assertEqual(eficiencia['consumo_atual_kwh'], Decimal('20.00'))
+        self.assertEqual(eficiencia['economia_kwh'], Decimal('80.00'))
+        self.assertEqual(eficiencia['co2e_evitado_kg'], Decimal('6.54'))
+        self.assertEqual(eficiencia['pontuacao_eficiencia'], Decimal('80.00'))
+
+    def test_comparacao_nao_inclui_consumo_de_outra_empresa(self):
+        outro_dispositivo = Dispositivo.objects.create(
+            dono=self.outro_usuario,
+            empresa=self.outro_usuario.perfil.empresa,
+            nome='Motor privado',
+            limite_kwh=Decimal('50.00'),
+        )
+        inicio_atual = self.agora.replace(
+            day=1,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
+        inicio_anterior = (inicio_atual - timedelta(days=1)).replace(day=1)
+        Leitura.objects.create(
+            dispositivo=outro_dispositivo,
+            valor_kwh=Decimal('900.00'),
+            registrado_em=inicio_anterior + (self.agora - inicio_atual) / 2,
+        )
+        Leitura.objects.create(
+            dispositivo=outro_dispositivo,
+            valor_kwh=Decimal('700.00'),
+            registrado_em=self.agora - timedelta(seconds=1),
+        )
+
+        eficiencia = calcular_eficiencia_energetica(self.usuario, agora=self.agora)
+
+        self.assertEqual(eficiencia['consumo_anterior_kwh'], Decimal('100.00'))
+        self.assertEqual(eficiencia['consumo_atual_kwh'], Decimal('20.00'))
+
+    def test_painel_exibe_comparacao_e_estimativa_bndes(self):
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        resposta = self.client.get(reverse('painel'))
+
+        self.assertContains(resposta, 'Eficiência energética e emissões evitadas')
+        self.assertContains(resposta, '80,00 kWh')
+        self.assertContains(resposta, '6,54 kg')
+        self.assertEqual(
+            estimar_economia_bndes(
+                Decimal('100000'),
+                resposta.context['eficiencia']['pontuacao_eficiencia'],
+            )['economia_anual'],
+            Decimal('1200.00'),
+        )
+        self.assertContains(resposta, 'R$ 1200,00')
+        self.assertContains(resposta, 'Não é oferta, aprovação')
+
+    def test_simulacao_bndes_restringe_valores_de_100_mil_a_1_milhao(self):
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        resposta = self.client.get(reverse('painel'), {'valor_financiado': '99999'})
+
+        self.assertIsNone(resposta.context['simulacao_bndes'])
+        self.assertIn(
+            'valor_financiado',
+            resposta.context['simulacao_bndes_form'].errors,
+        )
+
+        resposta = self.client.get(
+            reverse('painel'),
+            {'valor_financiado': '1000000'},
+        )
+
+        self.assertEqual(
+            resposta.context['simulacao_bndes']['economia_anual'],
+            Decimal('12000.00'),
+        )
+
+    def test_parametro_de_emissao_pode_ser_atualizado(self):
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        resposta = self.client.post(
+            reverse('parametros'),
+            {
+                'tarifa_kwh': '0.9000',
+                'fator_emissao_co2e': '0.100000',
+            },
+        )
+
+        self.assertRedirects(resposta, reverse('painel'))
+        self.assertEqual(
+            Parametro.objects.get(empresa=self.usuario.perfil.empresa).fator_emissao_co2e,
+            Decimal('0.100000'),
+        )
+
+    def test_perfil_de_manutencao_nao_visualiza_estimativa_financeira(self):
+        self.usuario.perfil.papel = PerfilEmpresa.Papel.MANUTENCAO
+        self.usuario.perfil.save(update_fields=['papel'])
+        self.client.login(username='carlos', password='senha-forte-123')
+
+        resposta = self.client.get(reverse('painel'))
+
+        self.assertNotContains(resposta, 'Estimativa de economia em crédito')
+        self.assertNotContains(resposta, 'Tarifa atual')
+        self.assertNotIn('simulacao_bndes_form', resposta.context)
+
+
+class US06DiagnosticoMultivariavelTests(BaseTestCase):
+    def enviar_evento(self, dados, token=None):
+        cabecalhos = {'HTTP_X_DEVICE_TOKEN': str(token)} if token else {}
+        return self.client.post(
+            reverse('api_evento'),
+            data=json.dumps(dados),
+            content_type='application/json',
+            **cabecalhos,
+        )
+
+    def test_correlaciona_sinais_e_abre_uma_os_prescritiva(self):
+        primeira = self.enviar_evento(
+            {'id_externo': 'ruido-1', 'tipo': 'ruido', 'valor': 88},
+            self.dispositivo.token,
+        )
+        segunda = self.enviar_evento(
+            {'id_externo': 'temperatura-1', 'tipo': 'temperatura', 'valor': 92},
+            self.dispositivo.token,
+        )
+
+        self.assertEqual(primeira.status_code, 202)
+        self.assertEqual(segunda.status_code, 201)
+        self.assertEqual(EventoSinal.objects.count(), 2)
+        self.assertEqual(OcorrenciaAnomalia.objects.count(), 1)
+        ocorrencia = OcorrenciaAnomalia.objects.get()
+        self.assertEqual(ocorrencia.eventos.count(), 2)
+        self.assertEqual(
+            ocorrencia.mensagem_prescritiva,
+            'Degradação de lubrificante mecânico provocando atrito e elevação de ruído',
+        )
+        self.assertEqual(ocorrencia.severidade, OcorrenciaAnomalia.Severidade.ALTA)
+        self.assertEqual(ocorrencia.ordem_servico.status, OrdemServico.Status.RASCUNHO)
+        self.assertEqual(
+            ocorrencia.ordem_servico.resumo,
+            'Investigar: Degradação de lubrificante mecânico',
+        )
+        self.assertEqual(
+            segunda.json()['ocorrencia']['ordem_servico'],
+            reverse('ordem_servico_detalhe', args=[ocorrencia.ordem_servico_id]),
+        )
+
+    def test_sinais_nao_sao_correlacionados_fora_da_janela(self):
+        agora = timezone.now()
+        primeira = self.enviar_evento(
+            {
+                'tipo': 'ruido',
+                'valor': 88,
+                'registrado_em': (agora - timedelta(minutes=6)).isoformat(),
+            },
+            self.dispositivo.token,
+        )
+        segunda = self.enviar_evento(
+            {
+                'tipo': 'temperatura',
+                'valor': 92,
+                'registrado_em': agora.isoformat(),
+            },
+            self.dispositivo.token,
+        )
+
+        self.assertEqual(primeira.status_code, 202)
+        self.assertEqual(segunda.status_code, 202)
+        self.assertFalse(OcorrenciaAnomalia.objects.exists())
+        self.assertFalse(OrdemServico.objects.exists())
+
+    def test_id_externo_torna_envio_idempotente(self):
+        dados = {'id_externo': 'sinal-1', 'tipo': 'ruido', 'valor': 88}
+
+        primeira = self.enviar_evento(dados, self.dispositivo.token)
+        segunda = self.enviar_evento(dados, self.dispositivo.token)
+
+        self.assertEqual(primeira.status_code, 202)
+        self.assertEqual(segunda.status_code, 200)
+        self.assertEqual(EventoSinal.objects.count(), 1)
+
+    def test_api_exige_token_e_valida_tipo_e_valor(self):
+        sem_token = self.enviar_evento({'tipo': 'ruido', 'valor': 88})
+        tipo_invalido = self.enviar_evento(
+            {'tipo': 'pressao', 'valor': 88},
+            self.dispositivo.token,
+        )
+        valor_invalido = self.enviar_evento(
+            {'tipo': 'ruido', 'valor': -1},
+            self.dispositivo.token,
+        )
+
+        self.assertEqual(sem_token.status_code, 401)
+        self.assertEqual(tipo_invalido.status_code, 400)
+        self.assertEqual(valor_invalido.status_code, 400)
+        self.assertEqual(EventoSinal.objects.count(), 0)

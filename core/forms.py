@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -79,12 +81,42 @@ class MensagemContatoForm(forms.ModelForm):
 
 
 class ParametroForm(forms.ModelForm):
+    fator_emissao_co2e = forms.DecimalField(
+        label='Fator de emissão (kg CO₂e/kWh)',
+        min_value=Decimal('0.000001'),
+        decimal_places=6,
+        required=False,
+        widget=forms.NumberInput(attrs={'step': '0.000001', 'min': '0.000001'}),
+    )
+
     class Meta:
         model = Parametro
-        fields = ['tarifa_kwh']
+        fields = ['tarifa_kwh', 'fator_emissao_co2e']
         widgets = {
             'tarifa_kwh': forms.NumberInput(attrs={'step': '0.0001', 'min': '0.0001'}),
+            'fator_emissao_co2e': forms.NumberInput(attrs={'step': '0.000001', 'min': '0.000001'}),
         }
+
+    def clean_fator_emissao_co2e(self):
+        return (
+            self.cleaned_data['fator_emissao_co2e']
+            or self.instance.fator_emissao_co2e
+        )
+
+
+class SimulacaoBNDESForm(forms.Form):
+    valor_financiado = forms.DecimalField(
+        label='Valor financiado (R$)',
+        min_value=Decimal('100000'),
+        max_value=Decimal('1000000'),
+        decimal_places=2,
+        initial=Decimal('100000'),
+        widget=forms.NumberInput(attrs={
+            'min': '100000',
+            'max': '1000000',
+            'step': '1000',
+        }),
+    )
 
 
 class OrdemServicoForm(forms.ModelForm):

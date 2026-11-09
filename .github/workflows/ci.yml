@@ -7,13 +7,28 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nexora_ci
+          POSTGRES_USER: nexora
+          POSTGRES_PASSWORD: nexora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexora -d nexora_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     env:
       SECRET_KEY: ci-only-secret-key-with-more-than-fifty-characters-for-checks
       DEBUG: "False"
       SECURE_SSL_REDIRECT: "False"
       ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgres://nexora:nexora@localhost:5432/nexora_ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -22,11 +37,54 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Check migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations to PostgreSQL
+        run: python manage.py migrate --no-input
+
       - name: Check Django configuration
         run: python manage.py check
 
       - name: Collect static files
         run: python manage.py collectstatic --no-input
 
-      - name: Run tests
-        run: python manage.py test
+      - name: Run Django integration tests
+        run: python manage.py test core.tests
+
+  selenium:
+    needs: backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: nexora_ci
+          POSTGRES_USER: nexora
+          POSTGRES_PASSWORD: nexora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexora -d nexora_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      SECRET_KEY: ci-only-secret-key-with-more-than-fifty-characters-for-checks
+      DEBUG: "False"
+      SECURE_SSL_REDIRECT: "False"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgres://nexora:nexora@localhost:5432/nexora_ci
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Verify Chrome is available
+        run: google-chrome --version
+      - name: Collect static files
+        run: python manage.py collectstatic --no-input
+      - name: Run Selenium end-to-end tests
+        run: python manage.py test core.test_selenium

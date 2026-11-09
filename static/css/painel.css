@@ -141,6 +141,55 @@
     font-size: clamp(1.25rem, 3vw, 1.6rem);
 }
 
+.efficiency-card,
+.bndes-card,
+.occurrences-card {
+    margin-bottom: 22px;
+}
+
+.efficiency-card h2,
+.bndes-card h2,
+.occurrences-card h2 {
+    margin-top: 0;
+    color: var(--nexora-ink);
+    font-size: 1.2rem;
+}
+
+.efficiency-chart {
+    display: grid;
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.efficiency-chart > div {
+    display: grid;
+    grid-template-columns: minmax(150px, 1fr) auto;
+    align-items: center;
+    gap: 8px 16px;
+}
+
+.efficiency-chart progress {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 18px;
+    accent-color: var(--nexora-purple);
+}
+
+.bndes-result {
+    padding: 14px 16px;
+    border-radius: 10px;
+    background: #f1edf5;
+}
+
+.occurrence-alert p {
+    margin: 8px 0;
+}
+
+.occurrence-alert a {
+    color: inherit;
+    font-weight: 700;
+}
+
 .alerta,
 .ok-box {
     padding: 14px 18px;
@@ -343,6 +392,15 @@
     .tabela th,
     .tabela td {
         padding: 9px;
+    }
+
+    .efficiency-chart > div {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+
+    .efficiency-chart progress {
+        grid-column: auto;
     }
 
     .delete-account-actions > * {

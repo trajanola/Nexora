@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import connection, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -29,11 +29,14 @@ from .forms import (
     MensagemContatoForm,
     OrdemServicoForm,
     ParametroForm,
+    SimulacaoBNDESForm,
 )
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    EventoSinal,
     Leitura,
+    OcorrenciaAnomalia,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
@@ -41,9 +44,12 @@ from .models import (
 from .services import (
     aprovar_ordem_servico,
     calcular_anomalias,
+    calcular_eficiencia_energetica,
     concluir_ordem_servico,
+    estimar_economia_bndes,
     iniciar_ordem_servico,
     obter_parametro,
+    registrar_evento_sinal as salvar_evento_sinal,
 )
 
 
@@ -52,6 +58,8 @@ def home(request):
 
 
 def health(request):
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT 1')
     return JsonResponse({'status': 'ok'})
 
 
@@ -594,12 +602,145 @@ def _registrar_leituras_em_lote(dispositivo, dados):
     )
 
 
+@csrf_exempt
+@require_POST
+def registrar_evento(request):
+    try:
+        dados = json.loads(request.body or b'{}')
+    except (ValueError, UnicodeDecodeError):
+        return JsonResponse({'erro': 'JSON inválido.'}, status=400)
+    if not isinstance(dados, dict):
+        return JsonResponse({'erro': 'O corpo deve ser um objeto JSON.'}, status=400)
+
+    token = request.headers.get('X-Device-Token') or dados.get('token')
+    if not token:
+        return JsonResponse({'erro': 'Token do dispositivo não informado.'}, status=401)
+    try:
+        dispositivo = Dispositivo.objects.get(token=token)
+    except (Dispositivo.DoesNotExist, ValueError, TypeError, ValidationError):
+        return JsonResponse({'erro': 'Dispositivo não encontrado.'}, status=404)
+
+    tipo = dados.get('tipo')
+    if tipo not in EventoSinal.Tipo.values:
+        return JsonResponse(
+            {'erro': 'tipo deve ser corrente, ruido, temperatura ou consumo.'},
+            status=400,
+        )
+    try:
+        valor = Decimal(str(dados.get('valor')))
+        if not valor.is_finite():
+            raise InvalidOperation
+        valor = valor.quantize(Decimal('0.0001'))
+    except (InvalidOperation, ValueError, TypeError):
+        return JsonResponse({'erro': 'valor deve ser um número válido.'}, status=400)
+
+    id_externo = dados.get('id_externo')
+    if id_externo is not None and (
+        not isinstance(id_externo, str) or not id_externo.strip()
+    ):
+        return JsonResponse({'erro': 'id_externo deve ser um texto não vazio.'}, status=400)
+    id_externo = id_externo.strip() if id_externo is not None else None
+    existente = (
+        EventoSinal.objects.filter(dispositivo=dispositivo, id_externo=id_externo).first()
+        if id_externo
+        else None
+    )
+    if existente:
+        return JsonResponse(_serializar_evento(existente), status=200)
+
+    registrado_em = dados.get('registrado_em')
+    if registrado_em is not None:
+        if not isinstance(registrado_em, str):
+            return JsonResponse({'erro': 'registrado_em deve ser uma data ISO válida.'}, status=400)
+        registrado_em = parse_datetime(registrado_em)
+        if registrado_em is None:
+            return JsonResponse({'erro': 'registrado_em deve ser uma data ISO válida.'}, status=400)
+        if timezone.is_naive(registrado_em):
+            registrado_em = timezone.make_aware(registrado_em)
+
+    unidades = {
+        EventoSinal.Tipo.CORRENTE: 'A',
+        EventoSinal.Tipo.RUIDO: 'dB',
+        EventoSinal.Tipo.TEMPERATURA: '°C',
+        EventoSinal.Tipo.CONSUMO: 'kWh',
+    }
+    evento = EventoSinal(
+        dispositivo=dispositivo,
+        tipo=tipo,
+        valor=valor,
+        unidade=str(dados.get('unidade') or unidades[tipo]).strip(),
+        id_externo=id_externo,
+        registrado_em=registrado_em or timezone.now(),
+    )
+    try:
+        evento.full_clean()
+    except ValidationError as erro:
+        return JsonResponse(
+            {
+                'erro': {
+                    campo: [str(item) for item in itens]
+                    for campo, itens in erro.message_dict.items()
+                },
+            },
+            status=400,
+        )
+
+    evento, ocorrencia, criado = salvar_evento_sinal(evento)
+    return JsonResponse(
+        _serializar_evento(evento, ocorrencia=ocorrencia),
+        status=200 if not criado else (201 if ocorrencia else 202),
+    )
+
+
+def _serializar_evento(evento, *, ocorrencia=None):
+    if ocorrencia is None:
+        ocorrencia = evento.ocorrencias.select_related('ordem_servico').first()
+    resposta = {
+        'id': evento.pk,
+        'tipo': evento.tipo,
+        'valor': str(evento.valor),
+        'unidade': evento.unidade,
+        'registrado_em': evento.registrado_em.isoformat(),
+    }
+    if ocorrencia:
+        resposta['ocorrencia'] = {
+            'id': ocorrencia.pk,
+            'causa': ocorrencia.causa,
+            'mensagem': ocorrencia.mensagem_prescritiva,
+            'severidade': ocorrencia.severidade,
+            'ordem_servico': reverse(
+                'ordem_servico_detalhe',
+                args=[ocorrencia.ordem_servico_id],
+            ),
+        }
+    return resposta
+
+
 class Painel(LoginRequiredMixin, TemplateView):
     template_name = 'core/painel.html'
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto['resumo'] = calcular_anomalias(self.request.user)
+        contexto['eficiencia'] = calcular_eficiencia_energetica(self.request.user)
+        contexto['ocorrencias'] = OcorrenciaAnomalia.objects.filter(
+            dispositivo__empresa=self.request.user.perfil.empresa,
+        ).select_related('dispositivo', 'ordem_servico')[:10]
+
+        if self.request.user.perfil.papel != PerfilEmpresa.Papel.MANUTENCAO:
+            simulacao_form = SimulacaoBNDESForm(self.request.GET or None)
+            contexto['simulacao_bndes_form'] = simulacao_form
+            contexto['simulacao_bndes'] = None
+            if not simulacao_form.is_bound or simulacao_form.is_valid():
+                valor = (
+                    simulacao_form.cleaned_data['valor_financiado']
+                    if simulacao_form.is_bound
+                    else simulacao_form['valor_financiado'].value()
+                )
+                contexto['simulacao_bndes'] = estimar_economia_bndes(
+                    valor,
+                    contexto['eficiencia']['pontuacao_eficiencia'],
+                )
         return contexto
 
 
@@ -620,5 +761,5 @@ class ParametrosView(LoginRequiredMixin, UpdateView):
         return obter_parametro(self.request.user)
 
     def form_valid(self, form):
-        messages.success(self.request, 'Tarifa salva com sucesso.')
+        messages.success(self.request, 'Parâmetros financeiros e ambientais salvos com sucesso.')
         return super().form_valid(form)

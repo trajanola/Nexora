@@ -36,6 +36,7 @@ urlpatterns = [
         name='ordem_servico_acao',
     ),
     path('api/leituras/', views.registrar_leitura, name='api_leitura'),
+    path('api/eventos/', views.registrar_evento, name='api_evento'),
     path('painel/', views.Painel.as_view(), name='painel'),
     path('parametros/', views.ParametrosView.as_view(), name='parametros'),
 ]

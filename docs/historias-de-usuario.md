@@ -23,8 +23,11 @@ O documento registra as histórias planejadas e implementadas. Além da infraest
 | US14 | Conhecer a Nexora pelo site institucional | Marcos | 1 | Já existente (Entrega 02) |
 | US15 | Perfis de acesso e isolamento de dados por empresa | Ana | 1 | Implementada (Entrega 04) |
 | US16 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Backlog |
-| US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Backlog |
+| US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Parcial (tarifa única e fator CO₂e) |
 | US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Implementada (Entrega 04) |
+| US04 | Eficiência energética e emissões evitadas (CO₂e) | Marcos | 2 | Implementada |
+| US05 | Estimativa de economia em crédito BNDES | Ana | 2 | Implementada |
+| US06 | Diagnóstico causal multivariável | Carlos | 3 | Implementada |
 | US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Implementada (Entrega 04) |
 | US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
 | US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
@@ -33,7 +36,6 @@ O documento registra as histórias planejadas e implementadas. Além da infraest
 | US23 | Tarifa e custo mensal de anomalias | Marcos | 2 | Implementada (Entrega 03) |
 
 ---
-
 # Histórias da Entrega 03
 
 ## US11: Criar conta de usuário
@@ -325,6 +327,49 @@ Funcionalidade: Tradução de anomalias em custo financeiro
 ```
 
 ---
+
+## US04: Calculadora de eficiência energética e emissões CO₂e (Implementada)
+
+**Persona:** Marcos | **Épico 2:** Tradução Financeira e Impacto ESG
+
+**História:** Como Proprietário, quero acompanhar a redução do consumo e as emissões evitadas para avaliar o pilar Ambiental (E).
+
+**Regra implementada:** soma as leituras de consumo da empresa no mês atual até o momento e compara com o mesmo intervalo decorrido do mês anterior. Só uma redução positiva é considerada economia. O CO₂e estimado é `kWh economizados × fator de emissão`; o fator inicial é 0,0817 kg CO₂e/kWh e pode ser alterado em Parâmetros.
+
+> O fator inicial é uma referência estimada, não um fator oficial garantido para todas as regiões. Valide-o com a fonte e o período de referência aplicáveis à empresa antes de usar em relatórios externos. As leituras devem representar consumo por intervalo, não valores cumulativos do medidor.
+
+**Cenários cobertos:** comparação visual no painel; conversão em kg CO₂e; ausência de crédito de economia quando o consumo aumenta ou não existe período de referência.
+
+## US05: Estimador de economia em crédito BNDES (Implementada)
+
+**Persona:** Ana | **Épico 2:** Tradução Financeira e Impacto ESG
+
+**História:** Como Diretora Financeira, quero simular a economia de juros associada ao desempenho energético, para avaliar o possível impacto no custo de capital.
+
+**Regra implementada:** a redução percentual de consumo da US04 é limitada a uma pontuação de 0 a 100. O spread projetado cresce linearmente até 1,5 ponto percentual ao ano. Para valores financiados de R$ 100.000 a R$ 1.000.000, a economia anual simples é `valor × spread estimado`; não considera prazo, capitalização ou regras de elegibilidade.
+
+> A tela identifica o resultado como estimativa; não é oferta, aprovação nem condição oficial do BNDES. A simulação fica disponível apenas para Proprietário e Financeiro.
+
+## US06: Diagnóstico causal multivariável (Implementada)
+
+**Persona:** Carlos | **Épico 3:** Diagnóstico Causal Inteligente e Alertas Regulatórios
+
+**História:** Como Gerente de Manutenção, quero correlacionar sinais distintos do mesmo equipamento e receber uma única causa provável com orientação, para reduzir a fadiga de notificações.
+
+**Regra implementada:** `POST /api/eventos/`, autenticado com `X-Device-Token`, recebe sinais que o equipamento/sistema de aquisição já classificou como eventos. Dois ou mais tipos distintos do mesmo dispositivo dentro de cinco minutos geram uma ocorrência de severidade alta e uma OS em rascunho. Reenvios com `id_externo` não duplicam eventos. A regra ruído + temperatura usa a mensagem: “Degradação de lubrificante mecânico provocando atrito e elevação de ruído”.
+
+> A API recebe eventos detectados; não define limites físicos para sensores nem substitui uma avaliação técnica da causa provável.
+
+Exemplo de envio:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/eventos/ \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: <token-do-dispositivo>" \
+  -d '{"id_externo":"sensor-001-ruido-01","tipo":"ruido","valor":88}'
+```
+
+Uma resposta `202` indica evento registrado aguardando correlação; `201` indica ocorrência correlacionada; `200` indica evento idempotente já registrado.
 
 # Backlog (Entrega 04 em diante)
 

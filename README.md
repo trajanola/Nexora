@@ -33,6 +33,9 @@ Depois de criar uma conta e entrar, o usuário pode:
 - Consultar o histórico recente de leituras de cada dispositivo.
 - Configurar a tarifa de energia da empresa em R$/kWh.
 - Acompanhar no painel o custo mensal do consumo excedente e, quando há custo de reparo cadastrado, o payback estimado em meses.
+- Comparar o consumo do mês atual com o mesmo período do mês anterior e estimar CO₂e evitado com fator configurável por empresa.
+- Simular a economia anual simples em crédito para valores de R$ 100 mil a R$ 1 milhão, identificada como estimativa e restrita aos perfis Proprietário e Financeiro.
+- Correlacionar eventos distintos de corrente, ruído, temperatura ou consumo do mesmo dispositivo em cinco minutos; a ocorrência cria uma OS em rascunho com uma orientação prescritiva.
 - Enviar mensagens pelo formulário Fale Conosco; a equipe consulta as mensagens no Django Admin.
 - Convidar novos membros para a empresa como Financeiro ou Gerente de Manutenção. O Gerente de Manutenção não pode acessar os parâmetros financeiros.
 
@@ -59,6 +62,17 @@ curl -X POST http://127.0.0.1:8000/api/leituras/ \
 ```
 
 Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeitada; nesse caso a API responde `207`. Reenviar o mesmo `id_externo` não cria uma duplicata.
+
+Para registrar um sinal já identificado pelo equipamento/sistema de aquisição, envie `POST /api/eventos/`. Dois tipos distintos correlacionados para o mesmo dispositivo em até cinco minutos geram uma ocorrência de severidade alta e uma OS em rascunho:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/eventos/ \
+  -H "Content-Type: application/json" \
+  -H "X-Device-Token: <token-do-dispositivo>" \
+  -d '{"id_externo":"sensor-001-ruido-01","tipo":"ruido","valor":88}'
+```
+
+Tipos aceitos: `corrente`, `ruido`, `temperatura` e `consumo`. `id_externo` é opcional e torna o evento idempotente quando informado. `202` significa aguardando correlação, `201` significa que uma ocorrência foi consolidada e `200` indica um reenvio já processado. A API recebe eventos, não aplica limites físicos para determinar se uma leitura isolada é anômala. Regras e limitações das estimativas estão em [docs/historias-de-usuario.md](./docs/historias-de-usuario.md).
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
@@ -167,9 +181,19 @@ python manage.py runserver
 
 Abra http://127.0.0.1:8000 no navegador. O painel administrativo fica em http://127.0.0.1:8000/admin.
 
+### Testes automatizados
+
+```bash
+python manage.py collectstatic --no-input
+python manage.py test core.tests
+python manage.py test core.test_selenium
+```
+
+Os testes Selenium precisam do Google Chrome/Chromium instalado e executam o fluxo de login, painel (CO₂e e simulação BNDES) e abertura da OS diagnosticada. O GitHub Actions executa os testes Django e Selenium contra PostgreSQL 16; o driver do Chrome é resolvido pelo Selenium Manager. A CI também verifica migrations e arquivos estáticos.
+
 ### Deploy no Render
 
-O arquivo `render.yaml` descreve o Web Service, o PostgreSQL, as migrations e a coleta de arquivos estáticos. O Render deve receber:
+O arquivo `render.yaml` descreve o Web Service e o PostgreSQL. O build instala dependências e coleta estáticos; no início do serviço, as migrations são aplicadas contra o PostgreSQL antes do Gunicorn. O deploy automático aguarda os checks do GitHub (`checksPass`) e o health check `/health/` verifica a conexão com o banco. O Render deve receber:
 
 - `SECRET_KEY`: segredo gerado ou armazenado pelo Render;
 - `DEBUG=False`;
@@ -177,7 +201,7 @@ O arquivo `render.yaml` descreve o Web Service, o PostgreSQL, as migrations e a 
 - `CSRF_TRUSTED_ORIGINS`: a URL HTTPS completa do serviço;
 - `DATABASE_URL`: preenchida automaticamente quando o banco do blueprint for criado.
 
-Localmente, a ausência de `DATABASE_URL` mantém o SQLite. No Render, a variável seleciona o PostgreSQL sem alteração de código.
+Localmente, a ausência de `DATABASE_URL` mantém o SQLite. No Render, a variável seleciona o PostgreSQL sem alteração de código. A etapa de CI executa as migrations e testes no PostgreSQL antes de autorizar o deploy; depois da publicação, confirme `/health/` e o estado do serviço no Render. O deploy remoto depende do serviço Render conectado ao repositório e de seus checks estarem habilitados.
 
 Para parar o servidor, use `Ctrl+C` no terminal.
 
@@ -326,7 +350,17 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 
 <br>
 
-As histórias abaixo estão no backlog e **ainda não foram implementadas**. Os cenários completos estão no documento de [Histórias de Usuário](./docs/historias-de-usuario.md).
+### Histórias do Diagnóstico implementadas
+
+- **US04 — Eficiência energética e CO₂e:** comparação mensal e fator de emissão configurável.
+- **US05 — Estimativa BNDES:** economia anual simples estimada por pontuação energética.
+- **US06 — Diagnóstico causal:** correlação de sinais em cinco minutos e criação de ocorrência/OS.
+
+Regras, premissas e cenários estão no documento de [Histórias de Usuário](./docs/historias-de-usuario.md). O fator de CO₂e inicial é estimado e deve ser validado para a região antes de relatórios externos; a projeção BNDES não representa oferta ou aprovação.
+
+### Backlog
+
+As histórias abaixo ainda não foram implementadas:
 
 ### US19 — Notificações consolidadas e priorizadas
 

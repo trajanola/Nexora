@@ -174,6 +174,13 @@ class Parametro(models.Model):
         default=Decimal('0.8500'),
         validators=[MinValueValidator(Decimal('0.0001'))],
     )
+    fator_emissao_co2e = models.DecimalField(
+        'fator de emissão (kg CO₂e/kWh)',
+        max_digits=10,
+        decimal_places=6,
+        default=Decimal('0.0817'),
+        validators=[MinValueValidator(Decimal('0.000001'))],
+    )
 
     class Meta:
         verbose_name = 'parâmetro financeiro'
@@ -181,6 +188,75 @@ class Parametro(models.Model):
 
     def __str__(self):
         return f'Parâmetros de {self.empresa}'
+
+
+class EventoSinal(models.Model):
+    class Tipo(models.TextChoices):
+        CORRENTE = 'corrente', 'Corrente'
+        RUIDO = 'ruido', 'Ruído'
+        TEMPERATURA = 'temperatura', 'Temperatura'
+        CONSUMO = 'consumo', 'Consumo'
+
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        on_delete=models.CASCADE,
+        related_name='eventos_sinal',
+    )
+    tipo = models.CharField(max_length=20, choices=Tipo.choices)
+    valor = models.DecimalField(
+        'valor do sinal',
+        max_digits=12,
+        decimal_places=4,
+        validators=[MinValueValidator(Decimal('0'))],
+    )
+    unidade = models.CharField(max_length=20)
+    id_externo = models.CharField(max_length=100, null=True, blank=True)
+    registrado_em = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ['registrado_em', 'pk']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['dispositivo', 'id_externo'],
+                name='evento_sinal_dispositivo_id_externo_uniq',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.dispositivo}: {self.get_tipo_display()} ({self.valor} {self.unidade})'
+
+
+class OcorrenciaAnomalia(models.Model):
+    class Severidade(models.TextChoices):
+        ALTA = 'alta', 'Alta'
+
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        on_delete=models.CASCADE,
+        related_name='ocorrencias',
+    )
+    eventos = models.ManyToManyField(EventoSinal, related_name='ocorrencias')
+    causa = models.CharField(max_length=255)
+    mensagem_prescritiva = models.TextField()
+    severidade = models.CharField(
+        max_length=10,
+        choices=Severidade.choices,
+        default=Severidade.ALTA,
+    )
+    criada_em = models.DateTimeField(default=timezone.now, db_index=True)
+    ordem_servico = models.OneToOneField(
+        'OrdemServico',
+        on_delete=models.SET_NULL,
+        related_name='ocorrencia',
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ['-criada_em', '-pk']
+
+    def __str__(self):
+        return f'{self.get_severidade_display()}: {self.causa}'
 
 
 class OrdemServico(models.Model):

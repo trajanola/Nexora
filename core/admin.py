@@ -3,12 +3,16 @@ from django.contrib import admin
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    DossieAuditoria,
     Empresa,
     Leitura,
     MensagemContato,
+    MissaoOperacional,
+    OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
+    TipoSensor,
 )
 
 
@@ -17,24 +21,70 @@ class LeituraInline(admin.TabularInline):
     extra = 0
 
 
+class DispositivoInline(admin.TabularInline):
+    model = Dispositivo
+    extra = 1
+    max_num = 200
+    fields = (
+        'nome',
+        'tipo_sensor',
+        'localizacao',
+        'limite_kwh',
+        'limite_temperatura_c',
+        'limite_corrente_a',
+        'limite_ruido_db',
+        'custo_reparo',
+    )
+
+
+@admin.register(TipoSensor)
+class TipoSensorAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'grandeza', 'unidade')
+    search_fields = ('nome', 'grandeza', 'unidade')
+
+
 @admin.register(Dispositivo)
 class DispositivoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'empresa', 'dono', 'localizacao', 'limite_kwh', 'criado_em')
-    list_filter = ('empresa',)
+    list_display = (
+        'nome',
+        'empresa',
+        'tipo_sensor',
+        'dono',
+        'localizacao',
+        'limite_kwh',
+        'limite_ruido_db',
+        'criado_em',
+    )
+    list_filter = ('empresa', 'tipo_sensor')
     search_fields = ('nome', 'localizacao')
     readonly_fields = ('token',)
+    list_per_page = 100
     inlines = [LeituraInline]
 
 
 @admin.register(Leitura)
 class LeituraAdmin(admin.ModelAdmin):
-    list_display = ('dispositivo', 'valor_kwh', 'registrado_em')
-    list_filter = ('dispositivo',)
+    list_display = (
+        'dispositivo',
+        'valor_kwh',
+        'temperatura_c',
+        'corrente_a',
+        'ruido_db',
+        'falha_seguranca_nr12',
+        'registrado_em',
+    )
+    list_filter = ('dispositivo', 'falha_seguranca_nr12')
 
 
 @admin.register(Parametro)
 class ParametroAdmin(admin.ModelAdmin):
-    list_display = ('empresa', 'tarifa_kwh')
+    list_display = (
+        'empresa',
+        'tarifa_kwh',
+        'fator_emissao_co2',
+        'taxa_base_bndes_aa',
+        'spread_maximo_desconto_aa',
+    )
 
 
 @admin.register(OrdemServico)
@@ -53,6 +103,51 @@ class OrdemServicoAdmin(admin.ModelAdmin):
     )
 
 
+@admin.register(OcorrenciaCausal)
+class OcorrenciaCausalAdmin(admin.ModelAdmin):
+    list_display = (
+        'dispositivo',
+        'causa_raiz',
+        'severidade',
+        'norma',
+        'quantidade_eventos',
+        'ordem_servico',
+        'detectada_em',
+    )
+    list_filter = ('severidade', 'norma', 'resolvida')
+    search_fields = ('dispositivo__nome', 'causa_raiz', 'mensagem_prescritiva')
+
+
+@admin.register(MissaoOperacional)
+class MissaoOperacionalAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'empresa', 'pontos_ganho', 'prioridade', 'status', 'concluida_em')
+    list_filter = ('status', 'empresa')
+    search_fields = ('titulo', 'codigo', 'empresa__nome')
+
+
+@admin.register(DossieAuditoria)
+class DossieAuditoriaAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'empresa',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'hash_sha256',
+        'carimbo_data_hora',
+    )
+    list_filter = ('empresa', 'estagio_maturidade')
+    readonly_fields = (
+        'empresa',
+        'gerado_por',
+        'carimbo_data_hora',
+        'hash_sha256',
+        'assinatura_hmac',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'payload_json',
+    )
+
+
 @admin.register(MensagemContato)
 class MensagemContatoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'email', 'enviada_em')
@@ -63,7 +158,9 @@ class MensagemContatoAdmin(admin.ModelAdmin):
 
 @admin.register(Empresa)
 class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'criada_em')
     search_fields = ('nome',)
+    inlines = [DispositivoInline]
 
 
 @admin.register(PerfilEmpresa)

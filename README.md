@@ -62,12 +62,16 @@ Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeita
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
-- Python
-- Django
-- HTML5
-- JIRA
-- CSS
-- Shell
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![Jira](https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white)
+![Shell Script](https://img.shields.io/badge/Shell_Script-121011?style=for-the-badge&logo=gnu-bash&logoColor=white)
+
+</div>
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>

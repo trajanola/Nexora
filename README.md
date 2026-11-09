@@ -67,6 +67,7 @@ Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeita
 - HTML5
 - JIRA
 - CSS
+- Shell
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>

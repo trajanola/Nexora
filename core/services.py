@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -59,6 +60,77 @@ def calcular_anomalias(usuario, agora=None):
             (item['custo'] for item in com_anomalia),
             Decimal('0.00'),
         ),
+    }
+
+
+def calcular_eficiencia_co2(usuario, agora=None):
+    inicio = inicio_do_mes(agora)
+    fim = (inicio + timedelta(days=32)).replace(day=1)
+    empresa = usuario.perfil.empresa
+    parametro = obter_parametro(usuario)
+    consumo_real = (
+        Dispositivo.objects.filter(empresa=empresa)
+        .aggregate(
+            total=Sum(
+                'leituras__valor_kwh',
+                filter=Q(
+                    leituras__registrado_em__gte=inicio,
+                    leituras__registrado_em__lt=fim,
+                ),
+            ),
+        )['total']
+        or Decimal('0.00')
+    )
+    base = parametro.consumo_base_mensal_kwh
+    economia_kwh = max(base - consumo_real, Decimal('0.00'))
+    percentual = (
+        (economia_kwh / base * Decimal('100')).quantize(Decimal('0.01'))
+        if base > 0
+        else None
+    )
+    co2_evitado = (economia_kwh * parametro.fator_emissao_co2).quantize(Decimal('0.01'))
+    return {
+        'consumo_real_kwh': consumo_real,
+        'consumo_base_kwh': base,
+        'economia_kwh': economia_kwh,
+        'eficiencia_percentual': percentual,
+        'co2_evitado_kg': co2_evitado,
+    }
+
+
+def estimar_credito_bndes(
+    *,
+    valor_investimento,
+    percentual_financiado,
+    taxa_juros_anual,
+    prazo_meses,
+    percentual_desconto,
+):
+    valor_investimento = Decimal(valor_investimento)
+    percentual_financiado = Decimal(percentual_financiado)
+    taxa_juros_anual = Decimal(taxa_juros_anual)
+    prazo_meses = int(prazo_meses)
+    percentual_desconto = Decimal(percentual_desconto)
+    valor_financiado = (
+        valor_investimento * percentual_financiado / Decimal('100')
+    ).quantize(CENTAVOS)
+    desconto = (
+        valor_financiado * percentual_desconto / Decimal('100')
+    ).quantize(CENTAVOS)
+    principal = valor_financiado - desconto
+    taxa_mensal = (taxa_juros_anual / Decimal('100') / Decimal('12'))
+    if taxa_mensal == 0:
+        parcela = (principal / prazo_meses).quantize(CENTAVOS)
+    else:
+        fator = (Decimal('1') + taxa_mensal) ** prazo_meses
+        parcela = (principal * taxa_mensal * fator / (fator - Decimal('1'))).quantize(CENTAVOS)
+    total_pago = (parcela * prazo_meses).quantize(CENTAVOS)
+    return {
+        'valor_financiado': valor_financiado,
+        'valor_desconto': desconto,
+        'valor_financiado_liquido': principal.quantize(CENTAVOS),
+        'parcela_mensal': parcela,
+        'total_pago': total_pago,
     }
 
 

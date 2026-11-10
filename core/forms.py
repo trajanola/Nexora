@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
@@ -79,12 +81,71 @@ class MensagemContatoForm(forms.ModelForm):
 
 
 class ParametroForm(forms.ModelForm):
+    consumo_base_mensal_kwh = forms.DecimalField(
+        required=False,
+        min_value=Decimal('0'),
+        label='Consumo base mensal (kWh)',
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+    )
+    fator_emissao_co2 = forms.DecimalField(
+        required=False,
+        min_value=Decimal('0'),
+        label='Fator de emissão (kgCO2e/kWh)',
+        widget=forms.NumberInput(attrs={'step': '0.0001', 'min': '0'}),
+    )
+
     class Meta:
         model = Parametro
-        fields = ['tarifa_kwh']
+        fields = ['tarifa_kwh', 'consumo_base_mensal_kwh', 'fator_emissao_co2']
         widgets = {
             'tarifa_kwh': forms.NumberInput(attrs={'step': '0.0001', 'min': '0.0001'}),
+            'consumo_base_mensal_kwh': forms.NumberInput(attrs={'step': '0.01', 'min': '0'}),
+            'fator_emissao_co2': forms.NumberInput(attrs={'step': '0.0001', 'min': '0'}),
         }
+
+
+class CreditoBNDESForm(forms.Form):
+    valor_investimento = forms.DecimalField(
+        label='Valor do investimento (R$)',
+        min_value=Decimal('0.01'),
+        max_digits=12,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+    )
+    percentual_financiado = forms.DecimalField(
+        label='Percentual financiado (%)',
+        min_value=Decimal('0'),
+        max_value=Decimal('100'),
+        max_digits=5,
+        decimal_places=2,
+        initial=Decimal('80.00'),
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+    )
+    taxa_juros_anual = forms.DecimalField(
+        label='Taxa de juros anual (%)',
+        min_value=Decimal('0'),
+        max_value=Decimal('100'),
+        max_digits=6,
+        decimal_places=3,
+        initial=Decimal('12.000'),
+        widget=forms.NumberInput(attrs={'step': '0.001', 'min': '0', 'max': '100'}),
+    )
+    prazo_meses = forms.IntegerField(
+        label='Prazo (meses)',
+        min_value=1,
+        max_value=600,
+        initial=60,
+        widget=forms.NumberInput(attrs={'min': '1', 'max': '600'}),
+    )
+    percentual_desconto = forms.DecimalField(
+        label='Desconto/subsídio (%)',
+        min_value=Decimal('0'),
+        max_value=Decimal('100'),
+        max_digits=5,
+        decimal_places=2,
+        initial=Decimal('0.00'),
+        widget=forms.NumberInput(attrs={'step': '0.01', 'min': '0', 'max': '100'}),
+    )
 
 
 class OrdemServicoForm(forms.ModelForm):

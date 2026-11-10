@@ -17,6 +17,7 @@
             <a class="action-link" href="{% url 'dispositivo_lista' %}">Dispositivos</a>
             {% if request.user.perfil.papel != 'manutencao' %}
                 <a class="action-link" href="{% url 'parametros' %}">Tarifa</a>
+                <a class="action-link" href="{% url 'credito_bndes' %}">Crédito BNDES</a>
             {% endif %}
             {% if request.user.perfil.papel == 'proprietario' %}
                 <a class="action-link" href="{% url 'convites_empresa' %}">Membros</a>

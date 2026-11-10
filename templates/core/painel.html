@@ -8,7 +8,22 @@
     <div class="cartao"><span>Com anomalia no mês</span><strong>{{ resumo.com_anomalia|length }}</strong></div>
     <div class="cartao"><span>Custo adicional estimado</span><strong>R$ {{ resumo.custo_total|floatformat:2 }}</strong></div>
     <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
+    <div class="cartao"><span>Economia energética no mês</span><strong>{{ eficiencia.economia_kwh|floatformat:2 }} kWh</strong></div>
+    <div class="cartao"><span>CO₂ evitado no mês</span><strong>{{ eficiencia.co2_evitado_kg|floatformat:2 }} kg</strong></div>
 </div>
+
+<section class="page-card">
+    <h2>Eficiência energética</h2>
+    {% if eficiencia.consumo_base_kwh > 0 %}
+        <p>Consumo real: <strong>{{ eficiencia.consumo_real_kwh|floatformat:2 }} kWh</strong>.
+        Linha de base: <strong>{{ eficiencia.consumo_base_kwh|floatformat:2 }} kWh</strong>.
+        {% if eficiencia.eficiencia_percentual != None %}
+            Economia relativa: <strong>{{ eficiencia.eficiencia_percentual|floatformat:2 }}%</strong>.
+        {% endif %}</p>
+    {% else %}
+        <p class="vazio">Configure uma linha de base mensal para acompanhar a eficiência energética.</p>
+    {% endif %}
+</section>
 
 <section class="page-card">
     {% if not resumo.itens %}

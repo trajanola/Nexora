@@ -18,7 +18,7 @@ from .models import (
     Parametro,
     PerfilEmpresa,
 )
-from .services import calcular_anomalias
+from .services import calcular_anomalias, calcular_eficiencia_co2, estimar_credito_bndes
 
 
 class BaseTestCase(TestCase):
@@ -650,6 +650,49 @@ class US18OrdensServicoTests(BaseTestCase):
 
 
 class US23AnomaliasTests(BaseTestCase):
+    def test_ingestao_em_lote_preserva_validos_e_rejeita_invalidos(self):
+        resposta = self.client.post(
+            reverse('api_leitura'),
+            data=json.dumps({
+                'token': str(self.dispositivo.token),
+                'leituras': [
+                    {'id_externo': 'lote-1', 'valor_kwh': 10},
+                    {'id_externo': 'lote-2', 'valor_kwh': -1},
+                ],
+            }),
+            content_type='application/json',
+        )
+        self.assertEqual(resposta.status_code, 207)
+        self.assertEqual(resposta.json()['criadas'], 1)
+        self.assertEqual(Leitura.objects.count(), 1)
+
+    def test_calcula_eficiencia_e_co2_com_base_mensal(self):
+        Parametro.objects.create(
+            empresa=self.usuario.perfil.empresa,
+            consumo_base_mensal_kwh=Decimal('100.00'),
+            fator_emissao_co2=Decimal('0.5000'),
+        )
+        Leitura.objects.create(dispositivo=self.dispositivo, valor_kwh=Decimal('70.00'))
+
+        resultado = calcular_eficiencia_co2(self.usuario)
+
+        self.assertEqual(resultado['economia_kwh'], Decimal('30.00'))
+        self.assertEqual(resultado['eficiencia_percentual'], Decimal('30.00'))
+        self.assertEqual(resultado['co2_evitado_kg'], Decimal('15.00'))
+
+    def test_estimador_bndes_calcula_desconto_e_parcela(self):
+        resultado = estimar_credito_bndes(
+            valor_investimento=Decimal('100000'),
+            percentual_financiado=Decimal('80'),
+            taxa_juros_anual=Decimal('0'),
+            prazo_meses=10,
+            percentual_desconto=Decimal('10'),
+        )
+
+        self.assertEqual(resultado['valor_financiado'], Decimal('80000.00'))
+        self.assertEqual(resultado['valor_desconto'], Decimal('8000.00'))
+        self.assertEqual(resultado['parcela_mensal'], Decimal('7200.00'))
+
     def test_custo_calculado_sobre_excedente(self):
         for valor in ('120', '150', '90'):
             Leitura.objects.create(dispositivo=self.dispositivo, valor_kwh=Decimal(valor))

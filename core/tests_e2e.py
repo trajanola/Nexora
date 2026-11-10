@@ -37,10 +37,16 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
     def wait_for_url(self, fragment):
         self.wait.until(EC.url_contains(fragment))
 
+    def fill_field(self, name, value):
+        field = self.wait.until(
+            EC.presence_of_element_located((By.NAME, name)),
+        )
+        field.send_keys(value)
+
     def login(self, username='selenium-user', password='Senha-forte-123'):
         self.browser.get(self.url('login'))
-        self.browser.find_element(By.NAME, 'nome_usuario').send_keys(username)
-        self.browser.find_element(By.NAME, 'senha_usuario').send_keys(password)
+        self.fill_field('nome_usuario', username)
+        self.fill_field('senha_usuario', password)
         self.browser.find_element(By.CSS_SELECTOR, 'button.btn-entrar').click()
         self.wait.until(EC.url_to_be(self.url('painel')))
 
@@ -60,7 +66,7 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
             'nome_empresa': 'Empresa Selenium',
         }
         for nome, valor in campos.items():
-            self.browser.find_element(By.NAME, nome).send_keys(valor)
+            self.fill_field(nome, valor)
         self.browser.find_element(By.CSS_SELECTOR, 'button[type="submit"]').click()
 
         self.wait_for_url('/login/')

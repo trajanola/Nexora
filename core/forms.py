@@ -64,11 +64,45 @@ class ConviteEmpresaForm(forms.ModelForm):
 class DispositivoForm(forms.ModelForm):
     class Meta:
         model = Dispositivo
-        fields = ['nome', 'localizacao', 'limite_kwh', 'custo_reparo']
+        fields = [
+            'nome',
+            'localizacao',
+            'limite_kwh',
+            'limite_temperatura_c',
+            'limite_corrente_a',
+            'limite_ruido_db',
+            'custo_reparo',
+        ]
         widgets = {
             'limite_kwh': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'limite_temperatura_c': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'limite_corrente_a': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
+            'limite_ruido_db': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
             'custo_reparo': forms.NumberInput(attrs={'step': '0.01', 'min': '0.01'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for campo in ('limite_temperatura_c', 'limite_corrente_a', 'limite_ruido_db'):
+            self.fields[campo].required = False
+
+    def clean_limite_temperatura_c(self):
+        return (
+            self.cleaned_data.get('limite_temperatura_c')
+            or Dispositivo._meta.get_field('limite_temperatura_c').default
+        )
+
+    def clean_limite_corrente_a(self):
+        return (
+            self.cleaned_data.get('limite_corrente_a')
+            or Dispositivo._meta.get_field('limite_corrente_a').default
+        )
+
+    def clean_limite_ruido_db(self):
+        return (
+            self.cleaned_data.get('limite_ruido_db')
+            or Dispositivo._meta.get_field('limite_ruido_db').default
+        )
 
 
 class MensagemContatoForm(forms.ModelForm):

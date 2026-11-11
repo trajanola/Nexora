@@ -1,6 +1,9 @@
+import json
 import os
+from decimal import Decimal
 from urllib.parse import urljoin
 
+from django.contrib.auth.models import User
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from selenium import webdriver
@@ -8,6 +11,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+
+from .models import Dispositivo
 
 
 class NexoraBrowserTests(StaticLiveServerTestCase):
@@ -86,3 +91,31 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
         )
         self.login()
         self.assertIn('Olá, selenium-user', self.browser.page_source)
+
+    def test_alerta_causal_nr15_gera_os_corretiva_e_exibe_no_painel(self):
+        usuario = User.objects.create_user('carlos-e2e', password='Senha-forte-123')
+        dispositivo = Dispositivo.objects.create(
+            dono=usuario,
+            nome='Prensa Hidráulica 01',
+            localizacao='Galpão Central',
+            limite_kwh=Decimal('100.00'),
+        )
+        resposta_api = self.client.post(
+            reverse('api_leitura'),
+            data=json.dumps({
+                'valor_kwh': 80,
+                'temperatura_c': 95,
+                'ruido_db': 92,
+            }),
+            content_type='application/json',
+            HTTP_X_DEVICE_TOKEN=str(dispositivo.token),
+        )
+        self.assertEqual(resposta_api.status_code, 201)
+
+        self.login(username='carlos-e2e', password='Senha-forte-123')
+        self.assertIn(
+            'Degradação de lubrificante mecânico provocando atrito e elevação de ruído.',
+            self.browser.page_source,
+        )
+        self.assertIn('NR-15', self.browser.page_source)
+        self.assertIn('Ordem de Serviço Corretiva gerada automaticamente', self.browser.page_source)

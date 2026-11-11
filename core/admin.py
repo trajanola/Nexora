@@ -6,6 +6,7 @@ from .models import (
     Empresa,
     Leitura,
     MensagemContato,
+    OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
@@ -19,7 +20,15 @@ class LeituraInline(admin.TabularInline):
 
 @admin.register(Dispositivo)
 class DispositivoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'empresa', 'dono', 'localizacao', 'limite_kwh', 'criado_em')
+    list_display = (
+        'nome',
+        'empresa',
+        'dono',
+        'localizacao',
+        'limite_kwh',
+        'limite_ruido_db',
+        'criado_em',
+    )
     list_filter = ('empresa',)
     search_fields = ('nome', 'localizacao')
     readonly_fields = ('token',)
@@ -28,8 +37,16 @@ class DispositivoAdmin(admin.ModelAdmin):
 
 @admin.register(Leitura)
 class LeituraAdmin(admin.ModelAdmin):
-    list_display = ('dispositivo', 'valor_kwh', 'registrado_em')
-    list_filter = ('dispositivo',)
+    list_display = (
+        'dispositivo',
+        'valor_kwh',
+        'temperatura_c',
+        'corrente_a',
+        'ruido_db',
+        'alerta_seguranca_nr12',
+        'registrado_em',
+    )
+    list_filter = ('dispositivo', 'alerta_seguranca_nr12')
 
 
 @admin.register(Parametro)
@@ -51,6 +68,21 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         'concluida_em',
         'concluida_por',
     )
+
+
+@admin.register(OcorrenciaCausal)
+class OcorrenciaCausalAdmin(admin.ModelAdmin):
+    list_display = (
+        'dispositivo',
+        'causa_raiz',
+        'severidade',
+        'norma',
+        'quantidade_eventos',
+        'ordem_servico',
+        'detectada_em',
+    )
+    list_filter = ('severidade', 'norma')
+    search_fields = ('dispositivo__nome', 'causa_raiz', 'mensagem_prescritiva')
 
 
 @admin.register(MensagemContato)

@@ -14,6 +14,7 @@ from .models import (
     Dispositivo,
     Leitura,
     MensagemContato,
+    OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
@@ -764,3 +765,76 @@ class US23AnomaliasTests(BaseTestCase):
             Parametro.objects.get(empresa=self.usuario.perfil.empresa).tarifa_kwh,
             Decimal('1.2000'),
         )
+
+
+class Epico3DiagnosticoEAlertasNRTests(BaseTestCase):
+    def enviar_leitura(self, corpo):
+        return self.client.post(
+            reverse('api_leitura'),
+            data=json.dumps(corpo),
+            content_type='application/json',
+            HTTP_X_DEVICE_TOKEN=str(self.dispositivo.token),
+        )
+
+    def test_us06_correlaciona_multiplos_sinais_em_unica_ocorrencia_prescritiva(self):
+        agora = timezone.now().isoformat()
+        resposta = self.enviar_leitura({
+            'leituras': [
+                {
+                    'id_externo': 'evt-1',
+                    'valor_kwh': 60,
+                    'temperatura_c': 92.5,
+                    'corrente_a': 65.0,
+                    'registrado_em': agora,
+                },
+                {
+                    'id_externo': 'evt-2',
+                    'valor_kwh': 62,
+                    'ruido_db': 91.0,
+                    'registrado_em': agora,
+                },
+            ],
+        })
+        self.assertEqual(resposta.status_code, 201)
+        self.assertEqual(OcorrenciaCausal.objects.count(), 1)
+        ocorrencia = OcorrenciaCausal.objects.get()
+        self.assertEqual(
+            ocorrencia.mensagem_prescritiva,
+            'Degradação de lubrificante mecânico provocando atrito e elevação de ruído.',
+        )
+        self.assertEqual(ocorrencia.quantidade_eventos, 2)
+        self.assertEqual(ocorrencia.norma, OcorrenciaCausal.Norma.NR15)
+        self.assertIsNotNone(ocorrencia.ordem_servico)
+        self.assertEqual(ocorrencia.ordem_servico.status, OrdemServico.Status.RASCUNHO)
+
+    def test_us07_alerta_nr12_gera_rascunho_de_ordem_de_servico_corretiva(self):
+        resposta = self.enviar_leitura({
+            'valor_kwh': 45,
+            'alerta_seguranca_nr12': True,
+        })
+        self.assertEqual(resposta.status_code, 201)
+        ocorrencia = OcorrenciaCausal.objects.get()
+        self.assertEqual(ocorrencia.norma, OcorrenciaCausal.Norma.NR12)
+        self.assertEqual(ocorrencia.severidade, OcorrenciaCausal.Severidade.CRITICA)
+        self.assertIsNotNone(ocorrencia.ordem_servico)
+        self.assertEqual(ocorrencia.ordem_servico.status, OrdemServico.Status.RASCUNHO)
+        self.assertIn('NR-12', ocorrencia.ordem_servico.resumo)
+
+    def test_us07_painel_e_detalhe_exibem_alertas_nr12_e_nr15(self):
+        self.enviar_leitura({
+            'valor_kwh': 50,
+            'temperatura_c': 95,
+            'ruido_db': 92,
+        })
+        self.client.login(username='carlos', password='senha-forte-123')
+        resposta_painel = self.client.get(reverse('painel'))
+        self.assertContains(
+            resposta_painel,
+            'Degradação de lubrificante mecânico provocando atrito e elevação de ruído.',
+        )
+        self.assertContains(resposta_painel, 'NR-15')
+
+        resposta_detalhe = self.client.get(
+            reverse('dispositivo_detalhe', args=[self.dispositivo.pk]),
+        )
+        self.assertContains(resposta_detalhe, 'Abrir OS Corretiva')

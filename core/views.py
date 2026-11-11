@@ -35,11 +35,13 @@ from .models import (
     ConviteEmpresa,
     Dispositivo,
     Leitura,
+    OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
 )
 from .services import (
+    analisar_telemetria,
     aprovar_ordem_servico,
     calcular_anomalias,
     calcular_eficiencia_co2,
@@ -369,6 +371,9 @@ class DispositivoDetailView(LoginRequiredMixin, DetailView):
         contexto = super().get_context_data(**kwargs)
         contexto['leituras'] = self.object.leituras.all()[:20]
         contexto['ordens_servico'] = self.object.ordens_servico.order_by('criada_em', 'pk')
+        contexto['ocorrencias'] = self.object.ocorrencias_causais.select_related(
+            'ordem_servico',
+        )[:10]
         return contexto
 
 
@@ -493,6 +498,19 @@ def registrar_leitura(request):
     )
 
 
+def _validar_decimal_opcional(dados, campo):
+    bruto = dados.get(campo)
+    if bruto is None or bruto == '':
+        return None, None
+    try:
+        valor = Decimal(str(bruto))
+        if not valor.is_finite() or valor < 0:
+            raise InvalidOperation
+        return valor.quantize(Decimal('0.01')), None
+    except (InvalidOperation, ValueError, TypeError):
+        return None, f'{campo} deve ser um número válido não negativo.'
+
+
 def _validar_leitura(dados, dispositivo):
     try:
         valor = Decimal(str(dados.get('valor_kwh')))
@@ -501,6 +519,20 @@ def _validar_leitura(dados, dispositivo):
         valor = valor.quantize(Decimal('0.01'))
     except (InvalidOperation, ValueError, TypeError):
         return None, 'valor_kwh deve ser um número válido.'
+
+    campos_extras = {}
+    for campo_decimal in ('temperatura_c', 'corrente_a', 'ruido_db'):
+        valor_extra, erro_extra = _validar_decimal_opcional(dados, campo_decimal)
+        if erro_extra:
+            return None, erro_extra
+        if valor_extra is not None:
+            campos_extras[campo_decimal] = valor_extra
+
+    if 'alerta_seguranca_nr12' in dados:
+        alerta_nr12 = dados.get('alerta_seguranca_nr12')
+        if not isinstance(alerta_nr12, bool):
+            return None, 'alerta_seguranca_nr12 deve ser booleano.'
+        campos_extras['alerta_seguranca_nr12'] = alerta_nr12
 
     id_externo = dados.get('id_externo')
     if id_externo is not None:
@@ -518,7 +550,7 @@ def _validar_leitura(dados, dispositivo):
         if timezone.is_naive(registrado_em):
             registrado_em = timezone.make_aware(registrado_em)
 
-    campos = {'dispositivo': dispositivo, 'valor_kwh': valor}
+    campos = {'dispositivo': dispositivo, 'valor_kwh': valor, **campos_extras}
     if id_externo is not None:
         campos['id_externo'] = id_externo
     if registrado_em is not None:
@@ -536,6 +568,7 @@ def _validar_leitura(dados, dispositivo):
 
 def _salvar_leitura(leitura):
     leitura.save()
+    analisar_telemetria(leitura)
     return leitura, True
 
 
@@ -555,6 +588,10 @@ def _serializar_leitura(leitura, *, duplicada=False):
         'id_externo': leitura.id_externo,
         'dispositivo': leitura.dispositivo.nome,
         'valor_kwh': str(leitura.valor_kwh),
+        'temperatura_c': str(leitura.temperatura_c) if leitura.temperatura_c is not None else None,
+        'corrente_a': str(leitura.corrente_a) if leitura.corrente_a is not None else None,
+        'ruido_db': str(leitura.ruido_db) if leitura.ruido_db is not None else None,
+        'alerta_seguranca_nr12': leitura.alerta_seguranca_nr12,
         'registrado_em': leitura.registrado_em.isoformat(),
     }
     if duplicada:
@@ -590,6 +627,7 @@ def _registrar_leituras_em_lote(dispositivo, dados):
         try:
             with transaction.atomic():
                 leitura.save()
+                analisar_telemetria(leitura)
         except IntegrityError:
             existente = _leitura_existente(
                 {'id_externo': leitura.id_externo},
@@ -618,8 +656,13 @@ class Painel(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
+        empresa = self.request.user.perfil.empresa
         contexto['resumo'] = calcular_anomalias(self.request.user)
         contexto['eficiencia'] = calcular_eficiencia_co2(self.request.user)
+        contexto['ocorrencias'] = (
+            OcorrenciaCausal.objects.filter(dispositivo__empresa=empresa)
+            .select_related('dispositivo', 'ordem_servico')[:10]
+        )
         return contexto
 
 

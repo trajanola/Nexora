@@ -6,9 +6,22 @@ from django.db.models import Count, F, Q, Sum
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Dispositivo, OrdemServico, Parametro
+from .models import Dispositivo, Leitura, OcorrenciaCausal, OrdemServico, Parametro
 
 CENTAVOS = Decimal('0.01')
+JANELA_CORRELACAO = timedelta(minutes=5)
+NOMES_SINAIS = {
+    'consumo': 'consumo de energia acima do limite',
+    'corrente': 'pico de corrente',
+    'temperatura': 'elevação de temperatura',
+    'ruido': 'elevação de ruído',
+    'nr12': 'violação de segurança NR-12',
+}
+ORDEM_SEVERIDADE = [
+    OcorrenciaCausal.Severidade.MEDIA,
+    OcorrenciaCausal.Severidade.ALTA,
+    OcorrenciaCausal.Severidade.CRITICA,
+]
 
 
 def obter_parametro(usuario):
@@ -191,3 +204,172 @@ def concluir_ordem_servico(
         'atualizada_em',
     ])
     return ordem
+
+
+def sinais_da_leitura(leitura):
+    dispositivo = leitura.dispositivo
+    sinais = set()
+    if leitura.valor_kwh is not None and leitura.valor_kwh > dispositivo.limite_kwh:
+        sinais.add('consumo')
+    if leitura.corrente_a is not None and leitura.corrente_a > dispositivo.limite_corrente_a:
+        sinais.add('corrente')
+    if (
+        leitura.temperatura_c is not None
+        and leitura.temperatura_c > dispositivo.limite_temperatura_c
+    ):
+        sinais.add('temperatura')
+    if leitura.ruido_db is not None and leitura.ruido_db > dispositivo.limite_ruido_db:
+        sinais.add('ruido')
+    if leitura.alerta_seguranca_nr12:
+        sinais.add('nr12')
+    return sinais
+
+
+def diagnosticar_causa_raiz(sinais):
+    if 'nr12' in sinais:
+        return (
+            'Violação de dispositivo de segurança em máquina (NR-12)',
+            'Violação de proteção ou intertravamento de segurança detectada. '
+            'Interrompa a operação e inspecione os dispositivos de segurança (NR-12).',
+        )
+    if 'ruido' in sinais and ('temperatura' in sinais or 'corrente' in sinais):
+        return (
+            'Degradação de lubrificante mecânico',
+            'Degradação de lubrificante mecânico provocando atrito e elevação de ruído.',
+        )
+    if 'corrente' in sinais and 'temperatura' in sinais:
+        return (
+            'Sobrecarga eletromecânica do motor',
+            'Pico de corrente com elevação de temperatura nos enrolamentos; '
+            'inspecione carga mecânica, ventilação e isolamento do motor.',
+        )
+    if 'corrente' in sinais and 'consumo' in sinais:
+        return (
+            'Esforço mecânico excessivo em operação',
+            'Elevação simultânea de corrente e consumo de energia; '
+            'verifique alinhamento, correias e desgaste de ferramentas.',
+        )
+    if 'temperatura' in sinais and 'consumo' in sinais:
+        return (
+            'Dissipação térmica anormal com desperdício energético',
+            'Superaquecimento associado a consumo excedente; '
+            'verifique sistema de arrefecimento e atrito nos mancais.',
+        )
+    if 'ruido' in sinais:
+        return (
+            'Exposição ocupacional a ruído acima do limite (NR-15)',
+            'Nível de ruído acima do limite regulatório da NR-15; '
+            'avalie enclausuramento acústico, manutenção preventiva e EPIs.',
+        )
+    descricao = ', '.join(NOMES_SINAIS[s] for s in sorted(sinais))
+    return (
+        'Anomalia multivariável correlacionada',
+        f'Sinais simultâneos detectados ({descricao}); realize inspeção técnica na máquina.',
+    )
+
+
+def _classificar_norma(sinais):
+    tem_nr12 = 'nr12' in sinais
+    tem_nr15 = 'ruido' in sinais
+    if tem_nr12 and tem_nr15:
+        return OcorrenciaCausal.Norma.NR12_NR15
+    if tem_nr12:
+        return OcorrenciaCausal.Norma.NR12
+    if tem_nr15:
+        return OcorrenciaCausal.Norma.NR15
+    return OcorrenciaCausal.Norma.NENHUMA
+
+
+def _classificar_severidade(sinais, norma):
+    if norma in (OcorrenciaCausal.Norma.NR12, OcorrenciaCausal.Norma.NR12_NR15):
+        return OcorrenciaCausal.Severidade.CRITICA
+    if norma == OcorrenciaCausal.Norma.NR15 or len(sinais) >= 3:
+        return OcorrenciaCausal.Severidade.ALTA
+    return OcorrenciaCausal.Severidade.MEDIA
+
+
+def _garantir_os_corretiva_automatica(ocorrencia):
+    if ocorrencia.norma == OcorrenciaCausal.Norma.NENHUMA or ocorrencia.ordem_servico_id:
+        return ocorrencia.ordem_servico
+    sigla = ocorrencia.get_norma_display().split(' (')[0]
+    ordem = OrdemServico.objects.create(
+        dispositivo=ocorrencia.dispositivo,
+        resumo=f'[Alerta {sigla}] {ocorrencia.causa_raiz}'[:160],
+        descricao=(
+            f'Ordem de Serviço Corretiva gerada automaticamente por desvio regulatório '
+            f'({ocorrencia.get_norma_display()}).\n'
+            f'Diagnóstico prescritivo: {ocorrencia.mensagem_prescritiva}\n'
+            f'Sinais correlacionados: {ocorrencia.sinais_correlacionados}'
+        ),
+        status=OrdemServico.Status.RASCUNHO,
+    )
+    ocorrencia.ordem_servico = ordem
+    ocorrencia.save(update_fields=['ordem_servico'])
+    return ordem
+
+
+@transaction.atomic
+def analisar_telemetria(leitura):
+    sinais_leitura = sinais_da_leitura(leitura)
+    if not sinais_leitura:
+        return None
+
+    inicio_janela = leitura.registrado_em - JANELA_CORRELACAO
+    fim_janela = leitura.registrado_em + JANELA_CORRELACAO
+    leituras_proximas = list(
+        Leitura.objects.filter(
+            dispositivo=leitura.dispositivo,
+            registrado_em__gte=inicio_janela,
+            registrado_em__lte=fim_janela,
+        ).select_related('dispositivo')
+    )
+
+    sinais_acumulados = set(sinais_leitura)
+    eventos_com_sinal = 0
+    for item in leituras_proximas:
+        sinais_item = sinais_da_leitura(item)
+        if sinais_item:
+            eventos_com_sinal += 1
+            sinais_acumulados |= sinais_item
+
+    norma = _classificar_norma(sinais_acumulados)
+    if len(sinais_acumulados) < 2 and norma == OcorrenciaCausal.Norma.NENHUMA:
+        return None
+
+    causa_raiz, mensagem_prescritiva = diagnosticar_causa_raiz(sinais_acumulados)
+    severidade = _classificar_severidade(sinais_acumulados, norma)
+    sinais_texto = ', '.join(NOMES_SINAIS[s] for s in sorted(sinais_acumulados))[:255]
+
+    existente = (
+        OcorrenciaCausal.objects.select_for_update()
+        .filter(
+            dispositivo=leitura.dispositivo,
+            detectada_em__gte=inicio_janela,
+            detectada_em__lte=fim_janela,
+        )
+        .first()
+    )
+    if existente:
+        existente.causa_raiz = causa_raiz
+        existente.mensagem_prescritiva = mensagem_prescritiva
+        existente.sinais_correlacionados = sinais_texto
+        existente.quantidade_eventos = max(existente.quantidade_eventos + 1, eventos_com_sinal)
+        existente.norma = norma
+        if ORDEM_SEVERIDADE.index(severidade) > ORDEM_SEVERIDADE.index(existente.severidade):
+            existente.severidade = severidade
+        existente.save()
+        _garantir_os_corretiva_automatica(existente)
+        return existente
+
+    ocorrencia = OcorrenciaCausal.objects.create(
+        dispositivo=leitura.dispositivo,
+        causa_raiz=causa_raiz,
+        mensagem_prescritiva=mensagem_prescritiva,
+        sinais_correlacionados=sinais_texto,
+        quantidade_eventos=max(1, eventos_com_sinal),
+        severidade=severidade,
+        norma=norma,
+        detectada_em=leitura.registrado_em,
+    )
+    _garantir_os_corretiva_automatica(ocorrencia)
+    return ocorrencia

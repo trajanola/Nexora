@@ -11,12 +11,16 @@
     {% if leituras %}
         <div class="tabela-wrap">
             <table class="tabela">
-                <thead><tr><th>Data e hora</th><th>Consumo (kWh)</th></tr></thead>
+                <thead><tr><th>Data e hora</th><th>Consumo (kWh)</th><th>Temp. (°C)</th><th>Corrente (A)</th><th>Ruído (dB)</th><th>NR-12</th></tr></thead>
                 <tbody>
                     {% for leitura in leituras %}
                         <tr>
                             <td>{{ leitura.registrado_em|date:"d/m/Y H:i" }}</td>
                             <td{% if leitura.valor_kwh > dispositivo.limite_kwh %} class="acima"{% endif %}>{{ leitura.valor_kwh|floatformat:2 }}</td>
+                            <td{% if leitura.temperatura_c != None and leitura.temperatura_c > dispositivo.limite_temperatura_c %} class="acima"{% endif %}>{% if leitura.temperatura_c != None %}{{ leitura.temperatura_c|floatformat:2 }}{% else %}—{% endif %}</td>
+                            <td{% if leitura.corrente_a != None and leitura.corrente_a > dispositivo.limite_corrente_a %} class="acima"{% endif %}>{% if leitura.corrente_a != None %}{{ leitura.corrente_a|floatformat:2 }}{% else %}—{% endif %}</td>
+                            <td{% if leitura.ruido_db != None and leitura.ruido_db > dispositivo.limite_ruido_db %} class="acima"{% endif %}>{% if leitura.ruido_db != None %}{{ leitura.ruido_db|floatformat:2 }}{% else %}—{% endif %}</td>
+                            <td{% if leitura.alerta_seguranca_nr12 %} class="acima"{% endif %}>{% if leitura.alerta_seguranca_nr12 %}Alerta NR-12{% else %}OK{% endif %}</td>
                         </tr>
                     {% endfor %}
                 </tbody>
@@ -24,6 +28,27 @@
         </div>
     {% else %}
         <p class="vazio">Nenhuma leitura recebida ainda.</p>
+    {% endif %}
+</section>
+
+<section class="page-card device-orders-card">
+    <h2>Diagnóstico Causal e Alertas Regulatórios (NR-12 / NR-15)</h2>
+    {% if ocorrencias %}
+        {% for ocorrencia in ocorrencias %}
+            <div class="alerta">
+                <div class="topo-acoes">
+                    <strong>{{ ocorrencia.causa_raiz }}</strong>
+                    <span class="os-status">{{ ocorrencia.get_norma_display }} · {{ ocorrencia.get_severidade_display }}</span>
+                </div>
+                <p>{{ ocorrencia.mensagem_prescritiva }}</p>
+                <p>Sinais ({{ ocorrencia.quantidade_eventos }} evento{{ ocorrencia.quantidade_eventos|pluralize }}): {{ ocorrencia.sinais_correlacionados }}.</p>
+                {% if ocorrencia.ordem_servico %}
+                    <p><a href="{% url 'ordem_servico_detalhe' ocorrencia.ordem_servico.pk %}"><strong>Abrir OS Corretiva #{{ ocorrencia.ordem_servico.pk }} ({{ ocorrencia.ordem_servico.get_status_display }})</strong></a></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="vazio">Nenhum alerta causal ou regulatório para este dispositivo.</p>
     {% endif %}
 </section>
 

@@ -10,6 +10,7 @@
     <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
     <div class="cartao"><span>Economia energética no mês</span><strong>{{ eficiencia.economia_kwh|floatformat:2 }} kWh</strong></div>
     <div class="cartao"><span>CO₂ evitado no mês</span><strong>{{ eficiencia.co2_evitado_kg|floatformat:2 }} kg</strong></div>
+    <div class="cartao"><span>Alertas causais / NR</span><strong>{{ ocorrencias|length }}</strong></div>
 </div>
 
 <section class="page-card">
@@ -41,6 +42,27 @@
         {% endfor %}
     {% else %}
         <div class="ok-box">Todos os dispositivos estão dentro do limite: não há custos adicionais por anomalias neste mês.</div>
+    {% endif %}
+</section>
+
+<section class="page-card">
+    <h2>Diagnóstico Causal e Conformidade NR-12 / NR-15</h2>
+    {% if ocorrencias %}
+        {% for ocorrencia in ocorrencias %}
+            <div class="alerta">
+                <div class="topo-acoes">
+                    <strong>{{ ocorrencia.dispositivo.nome }} · {{ ocorrencia.causa_raiz }}</strong>
+                    <span class="os-status">{{ ocorrencia.get_norma_display }} · Severidade {{ ocorrencia.get_severidade_display }}</span>
+                </div>
+                <p><strong>Diagnóstico prescritivo:</strong> {{ ocorrencia.mensagem_prescritiva }}</p>
+                <p>Sinais correlacionados ({{ ocorrencia.quantidade_eventos }} evento{{ ocorrencia.quantidade_eventos|pluralize }}): {{ ocorrencia.sinais_correlacionados }}.</p>
+                {% if ocorrencia.ordem_servico %}
+                    <p>Ordem de Serviço Corretiva gerada automaticamente: <a href="{% url 'ordem_servico_detalhe' ocorrencia.ordem_servico.pk %}"><strong>OS #{{ ocorrencia.ordem_servico.pk }} ({{ ocorrencia.ordem_servico.get_status_display }})</strong></a></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="ok-box">Nenhuma ocorrência causal ou desvio regulatório (NR-12 / NR-15) registrado.</div>
     {% endif %}
 </section>
 {% endblock %}

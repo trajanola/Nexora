@@ -109,6 +109,30 @@ class Dispositivo(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
     )
+    limite_temperatura_c = models.DecimalField(
+        'limite de temperatura (°C)',
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal('80.00'),
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    limite_corrente_a = models.DecimalField(
+        'limite de corrente (A)',
+        max_digits=8,
+        decimal_places=2,
+        default=Decimal('50.00'),
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
+    limite_ruido_db = models.DecimalField(
+        'limite de ruído NR-15 (dB)',
+        max_digits=6,
+        decimal_places=2,
+        default=Decimal('85.00'),
+        blank=True,
+        validators=[MinValueValidator(Decimal('0.01'))],
+    )
     custo_reparo = models.DecimalField(
         'custo estimado do reparo preventivo (R$)',
         max_digits=10,
@@ -147,6 +171,34 @@ class Leitura(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0'))],
+    )
+    temperatura_c = models.DecimalField(
+        'temperatura (°C)',
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+    )
+    corrente_a = models.DecimalField(
+        'corrente elétrica (A)',
+        max_digits=8,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+    )
+    ruido_db = models.DecimalField(
+        'nível de ruído (dB)',
+        max_digits=6,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+    )
+    alerta_seguranca_nr12 = models.BooleanField(
+        'violação de segurança NR-12',
+        default=False,
     )
     registrado_em = models.DateTimeField(default=timezone.now, db_index=True)
 
@@ -253,3 +305,54 @@ class OrdemServico(models.Model):
 
     def __str__(self):
         return f'OS #{self.pk} - {self.resumo}'
+
+
+class OcorrenciaCausal(models.Model):
+    class Severidade(models.TextChoices):
+        MEDIA = 'media', 'Média'
+        ALTA = 'alta', 'Alta'
+        CRITICA = 'critica', 'Crítica'
+
+    class Norma(models.TextChoices):
+        NENHUMA = 'nenhuma', 'Operacional'
+        NR12 = 'nr12', 'NR-12 (Segurança no Trabalho em Máquinas)'
+        NR15 = 'nr15', 'NR-15 (Atividades Insalubres/Ruído)'
+        NR12_NR15 = 'nr12_nr15', 'NR-12 e NR-15'
+
+    dispositivo = models.ForeignKey(
+        Dispositivo,
+        on_delete=models.CASCADE,
+        related_name='ocorrencias_causais',
+    )
+    causa_raiz = models.CharField('diagnóstico de causa raiz', max_length=255)
+    mensagem_prescritiva = models.TextField('mensagem prescritiva')
+    sinais_correlacionados = models.CharField('sinais correlacionados', max_length=255)
+    quantidade_eventos = models.PositiveIntegerField('eventos correlacionados', default=1)
+    severidade = models.CharField(
+        'severidade',
+        max_length=20,
+        choices=Severidade.choices,
+        default=Severidade.MEDIA,
+    )
+    norma = models.CharField(
+        'classificação regulatória',
+        max_length=20,
+        choices=Norma.choices,
+        default=Norma.NENHUMA,
+    )
+    ordem_servico = models.ForeignKey(
+        OrdemServico,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='ocorrencias_origem',
+    )
+    detectada_em = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ['-detectada_em', '-pk']
+        verbose_name = 'ocorrência causal'
+        verbose_name_plural = 'ocorrências causais'
+
+    def __str__(self):
+        return f'{self.dispositivo} - {self.causa_raiz}'

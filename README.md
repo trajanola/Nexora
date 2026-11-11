@@ -33,6 +33,8 @@ Depois de criar uma conta e entrar, o usuário pode:
 - Consultar o histórico recente de leituras de cada dispositivo.
 - Configurar a tarifa de energia da empresa em R$/kWh.
 - Acompanhar no painel o custo mensal do consumo excedente e, quando há custo de reparo cadastrado, o payback estimado em meses.
+- Configurar uma linha de base mensal e um fator de emissão para acompanhar eficiência energética, economia de kWh e CO2e evitado.
+- Simular crédito BNDES com valor financiado, desconto configurável, juros e prazo, sem substituir a análise da instituição financeira.
 - Enviar mensagens pelo formulário Fale Conosco; a equipe consulta as mensagens no Django Admin.
 - Convidar novos membros para a empresa como Financeiro ou Gerente de Manutenção. O Gerente de Manutenção não pode acessar os parâmetros financeiros.
 
@@ -59,6 +61,8 @@ curl -X POST http://127.0.0.1:8000/api/leituras/ \
 ```
 
 Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeitada; nesse caso a API responde `207`. Reenviar o mesmo `id_externo` não cria uma duplicata.
+
+Na tela **Tarifa**, o proprietário ou usuário financeiro também pode informar o consumo base mensal e o fator de emissão. O painel compara as leituras do mês com essa linha de base. A tela **Crédito BNDES** calcula uma simulação configurável usando o sistema de amortização Price; os parâmetros não representam uma oferta oficial do BNDES.
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
@@ -211,6 +215,26 @@ Para contribuir, crie uma branch antes de mexer no código:
 ```bash
 git checkout -b minha-feature
 ```
+
+### Testes automatizados
+
+Os testes Django são executados com:
+
+```bash
+python manage.py test
+```
+
+Os testes de navegador usam Selenium e Chrome. Instale as dependências de desenvolvimento e execute-os em modo headless:
+
+```powershell
+pip install -r requirements-dev.txt
+$env:SECRET_KEY = "chave-local-de-teste"
+$env:DEBUG = "False"
+$env:SELENIUM_HEADLESS = "1"
+python manage.py test core.tests_e2e --verbosity=2
+```
+
+Para abrir o navegador durante a execução, use `$env:SELENIUM_HEADLESS = "0"`. O Chrome precisa estar instalado localmente; o Selenium Manager providencia o driver compatível.
 </details>
 
 ## 📅 &nbsp;Entregas do Projeto

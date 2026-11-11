@@ -174,6 +174,23 @@ class Parametro(models.Model):
         default=Decimal('0.8500'),
         validators=[MinValueValidator(Decimal('0.0001'))],
     )
+    consumo_base_mensal_kwh = models.DecimalField(
+        'consumo base mensal (kWh)',
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+        help_text='Use zero quando ainda não houver uma linha de base definida.',
+    )
+    fator_emissao_co2 = models.DecimalField(
+        'fator de emissão (kgCO2e/kWh)',
+        max_digits=8,
+        decimal_places=4,
+        default=Decimal('0.0000'),
+        blank=True,
+        validators=[MinValueValidator(Decimal('0'))],
+    )
 
     class Meta:
         verbose_name = 'parâmetro financeiro'

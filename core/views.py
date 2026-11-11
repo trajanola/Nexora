@@ -9,7 +9,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -24,6 +24,7 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView,
 from .forms import (
     CadastroForm,
     ConclusaoOrdemServicoForm,
+    CreditoBNDESForm,
     ConviteEmpresaForm,
     DispositivoForm,
     MensagemContatoForm,
@@ -41,9 +42,11 @@ from .models import (
 from .services import (
     aprovar_ordem_servico,
     calcular_anomalias,
+    calcular_eficiencia_co2,
     concluir_ordem_servico,
     iniciar_ordem_servico,
     obter_parametro,
+    estimar_credito_bndes,
 )
 
 
@@ -568,6 +571,7 @@ def _registrar_leituras_em_lote(dispositivo, dados):
 
     resultados = []
     erros = []
+    leituras_para_salvar = []
     for indice, item in enumerate(dados):
         if not isinstance(item, dict):
             erros.append({'indice': indice, 'erro': 'Cada leitura deve ser um objeto JSON.'})
@@ -580,8 +584,23 @@ def _registrar_leituras_em_lote(dispositivo, dados):
         if erro:
             erros.append({'indice': indice, 'erro': erro})
             continue
-        leitura, criada = _salvar_leitura(leitura)
-        resultados.append(_serializar_leitura(leitura, duplicada=not criada))
+        leituras_para_salvar.append((indice, leitura))
+
+    for indice, leitura in leituras_para_salvar:
+        try:
+            with transaction.atomic():
+                leitura.save()
+        except IntegrityError:
+            existente = _leitura_existente(
+                {'id_externo': leitura.id_externo},
+                dispositivo,
+            )
+            if existente:
+                resultados.append(_serializar_leitura(existente, duplicada=True))
+            else:
+                erros.append({'indice': indice, 'erro': 'Leitura duplicada ou inválida.'})
+        else:
+            resultados.append(_serializar_leitura(leitura))
 
     return JsonResponse(
         {
@@ -600,7 +619,26 @@ class Painel(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         contexto = super().get_context_data(**kwargs)
         contexto['resumo'] = calcular_anomalias(self.request.user)
+        contexto['eficiencia'] = calcular_eficiencia_co2(self.request.user)
         return contexto
+
+
+class CreditoBNDESView(LoginRequiredMixin, View):
+    template_name = 'core/credito_bndes.html'
+
+    def get(self, request):
+        return render(request, self.template_name, {'form': CreditoBNDESForm()})
+
+    def post(self, request):
+        form = CreditoBNDESForm(request.POST)
+        resultado = None
+        if form.is_valid():
+            resultado = estimar_credito_bndes(**form.cleaned_data)
+        return render(
+            request,
+            self.template_name,
+            {'form': form, 'resultado': resultado},
+        )
 
 
 class ParametrosView(LoginRequiredMixin, UpdateView):

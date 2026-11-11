@@ -1,0 +1,23 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Crédito BNDES{% endblock %}
+{% block cabecalho %}Estimador de crédito BNDES{% endblock %}
+{% block subtitulo %}Simule condições configuráveis; confirme a linha de crédito antes de contratar.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <form class="page-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Calcular simulação</button>
+    </form>
+</section>
+{% if resultado %}
+<section class="page-card" data-testid="resultado-bndes">
+    <h2>Resultado estimado</h2>
+    <p>Valor financiado: <strong>R$ {{ resultado.valor_financiado|floatformat:2 }}</strong></p>
+    <p>Desconto/subsídio: <strong>R$ {{ resultado.valor_desconto|floatformat:2 }}</strong></p>
+    <p>Saldo financiado: <strong>R$ {{ resultado.valor_financiado_liquido|floatformat:2 }}</strong></p>
+    <p>Parcela mensal estimada: <strong>R$ {{ resultado.parcela_mensal|floatformat:2 }}</strong></p>
+    <p>Total estimado pago: <strong>R$ {{ resultado.total_pago|floatformat:2 }}</strong></p>
+</section>
+{% endif %}
+{% endblock %}

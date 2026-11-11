@@ -38,4 +38,5 @@ urlpatterns = [
     path('api/leituras/', views.registrar_leitura, name='api_leitura'),
     path('painel/', views.Painel.as_view(), name='painel'),
     path('parametros/', views.ParametrosView.as_view(), name='parametros'),
+    path('credito-bndes/', views.CreditoBNDESView.as_view(), name='credito_bndes'),
 ]

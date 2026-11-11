@@ -4,6 +4,7 @@ from urllib.parse import urljoin
 from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.urls import reverse
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -38,9 +39,17 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
         self.wait.until(EC.url_contains(fragment))
 
     def fill_field(self, name, value):
-        field = self.wait.until(
-            EC.presence_of_element_located((By.NAME, name)),
-        )
+        try:
+            field = self.wait.until(
+                EC.presence_of_element_located((By.NAME, name)),
+            )
+        except TimeoutException:
+            trecho = ' '.join(self.browser.page_source.split())[:500]
+            self.fail(
+                f'Campo "{name}" não apareceu em {self.browser.current_url}. '
+                f'Título da página: "{self.browser.title}". '
+                f'Início do HTML (verifique se é um erro 500): {trecho}'
+            )
         field.send_keys(value)
 
     def login(self, username='selenium-user', password='Senha-forte-123'):

@@ -46,5 +46,9 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: pip install -r requirements-dev.txt
+
+      - name: Collect static files
+        run: python manage.py collectstatic --no-input
+
       - name: Run Selenium tests
         run: python manage.py test core.tests_e2e --verbosity=2

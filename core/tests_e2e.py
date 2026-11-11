@@ -113,9 +113,12 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
         self.assertEqual(resposta_api.status_code, 201)
 
         self.login(username='carlos-e2e', password='Senha-forte-123')
+        alerta_texto = self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'div.alerta')),
+        ).text
         self.assertIn(
             'Degradação de lubrificante mecânico provocando atrito e elevação de ruído.',
-            self.browser.page_source,
+            alerta_texto,
         )
-        self.assertIn('NR-15', self.browser.page_source)
-        self.assertIn('Ordem de Serviço Corretiva gerada automaticamente', self.browser.page_source)
+        self.assertIn('NR-15', alerta_texto)
+        self.assertIn('Ordem de Serviço Corretiva gerada automaticamente', alerta_texto)

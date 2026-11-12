@@ -69,11 +69,42 @@ Na tela **Tarifa**, o proprietário ou usuário financeiro também pode informar
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
-- Python
-- Django
-- HTML5
-- JIRA
-- CSS
+<div align="center">
+
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions&logoColor=white)
+![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
+![AWS](https://img.shields.io/badge/Amazon_AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Jira](https://img.shields.io/badge/Jira-0052CC?style=for-the-badge&logo=jira&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
+
+</div>
+
+<details>
+<summary><b>📦 Bibliotecas Implementadas</b> (clique para expandir)</summary>
+
+<br>
+
+| Biblioteca | Versão | Finalidade no Projeto |
+| :--- | :---: | :--- |
+| **Django** | `6.1.1` | Núcleo da aplicação: ORM para dispositivos/telemetria, autenticação, controle de permissões e views |
+| **selenium** | `>=4.25,<5` | Testes automatizados de sistema (E2E) no navegador Google Chrome via Selenium Manager |
+| **whitenoise** | `6.9.0` | Servidor de arquivos estáticos otimizado para produção com compressão e manifesto com hash |
+| **gunicorn** | `23.0.0` | Servidor HTTP WSGI para execução em ambiente de produção (Render / Linux) |
+| **psycopg[binary]** | `3.2.10` | Driver de alta performance para comunicação com o banco PostgreSQL |
+| **dj-database-url** | `3.0.1` | Configuração dinâmica da conexão com o banco a partir da variável `DATABASE_URL` |
+| **python-dotenv** | `1.2.4` | Carregamento seguro de variáveis de ambiente a partir do arquivo `.env` |
+| **asgiref** | `3.12.1` | Padrão e utilitários ASGI de suporte ao ecossistema assíncrono do Django |
+| **sqlparse** | `0.6.0` | Motor de parsing e inspeção SQL utilizado internamente pelas migrações do Django |
+| **tzdata** | `2026.3` | Base de dados de fusos horários do IANA para suporte a horários locais (`America/Sao_Paulo`) |
+
+</details>
 
 ## 💻 &nbsp;Como Rodar o Projeto Localmente
 <details>

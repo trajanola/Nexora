@@ -356,3 +356,83 @@ class OcorrenciaCausal(models.Model):
 
     def __str__(self):
         return f'{self.dispositivo} - {self.causa_raiz}'
+
+
+class MissaoOperacional(models.Model):
+    class Status(models.TextChoices):
+        PENDENTE = 'pendente', 'Pendente'
+        CONCLUIDA = 'concluida', 'Concluída'
+
+    empresa = models.ForeignKey(
+        Empresa,
+        on_delete=models.CASCADE,
+        related_name='missoes',
+    )
+    codigo = models.CharField('código da missão', max_length=60)
+    titulo = models.CharField('título da missão', max_length=160)
+    descricao = models.TextField('passo a passo prático')
+    pontos_ganho = models.PositiveIntegerField('ganho estimado em pontos', default=15)
+    prioridade = models.PositiveSmallIntegerField('ordem de prioridade', default=1)
+    status = models.CharField(
+        'status',
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDENTE,
+    )
+    concluida_em = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['prioridade', 'pk']
+        verbose_name = 'missão operacional'
+        verbose_name_plural = 'missões operacionais'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['empresa', 'codigo'],
+                name='missao_empresa_codigo_uniq',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.titulo} (+{self.pontos_ganho} pts)'
+
+
+class DossieAuditoria(models.Model):
+    empresa = models.ForeignKey(
+        Empresa,
+        on_delete=models.CASCADE,
+        related_name='dossies',
+    )
+    gerado_por = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='dossies_gerados',
+    )
+    carimbo_data_hora = models.DateTimeField(
+        'carimbo de data/hora imutável',
+        default=timezone.now,
+        editable=False,
+    )
+    hash_sha256 = models.CharField(
+        'hash criptográfico SHA-256',
+        max_length=64,
+        unique=True,
+        editable=False,
+    )
+    assinatura_hmac = models.CharField(
+        'assinatura criptográfica HMAC',
+        max_length=64,
+        editable=False,
+    )
+    nota_maturidade = models.PositiveSmallIntegerField('nota de maturidade (0-100)')
+    estagio_maturidade = models.CharField('estágio de maturidade', max_length=40)
+    payload_json = models.TextField('evidências serializadas (JSON canônico)', editable=False)
+
+    class Meta:
+        ordering = ['-carimbo_data_hora', '-pk']
+        verbose_name = 'dossiê digital auditável'
+        verbose_name_plural = 'dossiês digitais auditáveis'
+
+    def __str__(self):
+        return f'Dossiê #{self.pk} - {self.empresa} ({self.hash_sha256[:12]})'

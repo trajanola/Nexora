@@ -3,9 +3,11 @@ from django.contrib import admin
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    DossieAuditoria,
     Empresa,
     Leitura,
     MensagemContato,
+    MissaoOperacional,
     OcorrenciaCausal,
     OrdemServico,
     Parametro,
@@ -83,6 +85,36 @@ class OcorrenciaCausalAdmin(admin.ModelAdmin):
     )
     list_filter = ('severidade', 'norma')
     search_fields = ('dispositivo__nome', 'causa_raiz', 'mensagem_prescritiva')
+
+
+@admin.register(MissaoOperacional)
+class MissaoOperacionalAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'empresa', 'pontos_ganho', 'prioridade', 'status', 'concluida_em')
+    list_filter = ('status', 'empresa')
+    search_fields = ('titulo', 'codigo', 'empresa__nome')
+
+
+@admin.register(DossieAuditoria)
+class DossieAuditoriaAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'empresa',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'hash_sha256',
+        'carimbo_data_hora',
+    )
+    list_filter = ('empresa', 'estagio_maturidade')
+    readonly_fields = (
+        'empresa',
+        'gerado_por',
+        'carimbo_data_hora',
+        'hash_sha256',
+        'assinatura_hmac',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'payload_json',
+    )
 
 
 @admin.register(MensagemContato)

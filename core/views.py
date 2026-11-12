@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.mail import send_mail
 from django.db import IntegrityError, transaction
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -34,6 +34,7 @@ from .forms import (
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    DossieAuditoria,
     Leitura,
     OcorrenciaCausal,
     OrdemServico,
@@ -45,10 +46,15 @@ from .services import (
     aprovar_ordem_servico,
     calcular_anomalias,
     calcular_eficiencia_co2,
+    calcular_maturidade_operacional,
     concluir_ordem_servico,
+    emitir_dossie_auditoria,
+    estimar_credito_bndes,
+    exportar_dossie_json,
+    exportar_dossie_pdf,
     iniciar_ordem_servico,
     obter_parametro,
-    estimar_credito_bndes,
+    sincronizar_missoes,
 )
 
 
@@ -659,11 +665,77 @@ class Painel(LoginRequiredMixin, TemplateView):
         empresa = self.request.user.perfil.empresa
         contexto['resumo'] = calcular_anomalias(self.request.user)
         contexto['eficiencia'] = calcular_eficiencia_co2(self.request.user)
+        contexto['maturidade'] = calcular_maturidade_operacional(self.request.user)
+        contexto['missoes'] = sincronizar_missoes(self.request.user)
         contexto['ocorrencias'] = (
             OcorrenciaCausal.objects.filter(dispositivo__empresa=empresa)
             .select_related('dispositivo', 'ordem_servico')[:10]
         )
         return contexto
+
+
+class DossieAuditoriaView(LoginRequiredMixin, View):
+    template_name = 'core/dossie_auditoria.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.perfil.papel == PerfilEmpresa.Papel.MANUTENCAO
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        empresa = request.user.perfil.empresa
+        dossies = DossieAuditoria.objects.filter(empresa=empresa)[:10]
+        return render(
+            request,
+            self.template_name,
+            {
+                'dossies': dossies,
+                'maturidade': calcular_maturidade_operacional(request.user),
+                'eficiencia': calcular_eficiencia_co2(request.user),
+            },
+        )
+
+    def post(self, request):
+        dossie = emitir_dossie_auditoria(request.user)
+        messages.success(
+            request,
+            f'Dossiê digital auditável #{dossie.pk} emitido com hash {dossie.hash_sha256[:16]}…',
+        )
+        return redirect('dossie_auditoria')
+
+
+class DossieExportarView(LoginRequiredMixin, View):
+    def dispatch(self, request, *args, **kwargs):
+        if (
+            request.user.is_authenticated
+            and request.user.perfil.papel == PerfilEmpresa.Papel.MANUTENCAO
+        ):
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, pk, formato):
+        dossie = get_object_or_404(
+            DossieAuditoria,
+            pk=pk,
+            empresa=request.user.perfil.empresa,
+        )
+        if formato == 'json':
+            conteudo = exportar_dossie_json(dossie)
+            resposta = HttpResponse(
+                conteudo,
+                content_type='application/json; charset=utf-8',
+            )
+            resposta['Content-Disposition'] = f'attachment; filename="dossie-nexora-{dossie.pk}.json"'
+            return resposta
+        if formato == 'pdf':
+            conteudo_pdf = exportar_dossie_pdf(dossie)
+            resposta = HttpResponse(conteudo_pdf, content_type='application/pdf')
+            resposta['Content-Disposition'] = f'attachment; filename="dossie-nexora-{dossie.pk}.pdf"'
+            return resposta
+        return JsonResponse({'erro': 'Formato de exportação inválido.'}, status=400)
 
 
 class CreditoBNDESView(LoginRequiredMixin, View):

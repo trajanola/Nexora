@@ -1,0 +1,54 @@
+{% extends 'core/base_app.html' %}
+{% block titulo %}Dossiê Digital Auditável{% endblock %}
+{% block cabecalho %}Dossiê Digital Auditável Criptografado{% endblock %}
+{% block subtitulo %}Evidências de telemetria, eficiência energética e conformidade B2B com validação SHA-256.{% endblock %}
+{% block conteudo %}
+<section class="page-card">
+    <div class="topo-acoes">
+        <div>
+            <h2>Emitir novo dossiê de homologação</h2>
+            <p class="vazio">Nota atual de maturidade: <strong>{{ maturidade.nota }}/100 ({{ maturidade.estagio }})</strong> · CO₂ evitado no mês: <strong>{{ eficiencia.co2_evitado_kg|floatformat:2 }} kg</strong>.</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit">Gerar dossiê criptografado</button>
+        </form>
+    </div>
+</section>
+
+<section class="page-card device-orders-card">
+    <h2>Dossiês emitidos</h2>
+    {% if dossies %}
+        <div class="tabela-wrap">
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Carimbo de data/hora</th>
+                        <th>Maturidade</th>
+                        <th>Hash criptográfico (SHA-256)</th>
+                        <th>Exportar</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dossie in dossies %}
+                        <tr>
+                            <td>#{{ dossie.pk }}</td>
+                            <td>{{ dossie.carimbo_data_hora|date:"d/m/Y H:i:s" }}</td>
+                            <td>{{ dossie.nota_maturidade }}/100 ({{ dossie.estagio_maturidade }})</td>
+                            <td><code>{{ dossie.hash_sha256 }}</code></td>
+                            <td>
+                                <a href="{% url 'dossie_exportar' dossie.pk 'pdf' %}"><strong>PDF</strong></a>
+                                ·
+                                <a href="{% url 'dossie_exportar' dossie.pk 'json' %}"><strong>JSON</strong></a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhum dossiê emitido até o momento.</p>
+    {% endif %}
+</section>
+{% endblock %}

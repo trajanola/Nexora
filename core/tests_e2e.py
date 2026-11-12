@@ -122,3 +122,26 @@ class NexoraBrowserTests(StaticLiveServerTestCase):
         )
         self.assertIn('NR-15', alerta_texto)
         self.assertIn('Ordem de Serviço Corretiva gerada automaticamente', alerta_texto)
+
+    def test_maturidade_missoes_e_emissao_de_dossie_auditavel(self):
+        usuario = User.objects.create_user('ana-e2e', password='Senha-forte-123')
+        Dispositivo.objects.create(
+            dono=usuario,
+            nome='Torno CNC 03',
+            localizacao='Setor Usinagem',
+            limite_kwh=Decimal('80.00'),
+        )
+        self.login(username='ana-e2e', password='Senha-forte-123')
+        self.assertIn('Índice Nexora de Maturidade Operacional', self.browser.page_source)
+        self.assertIn('Trilha Gamificada de Missões Operacionais', self.browser.page_source)
+
+        self.browser.get(self.url('dossie_auditoria'))
+        botao = self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'main button[type="submit"]')),
+        )
+        botao.click()
+        tabela = self.wait.until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'table.tabela')),
+        )
+        self.assertIn('PDF', tabela.text)
+        self.assertIn('JSON', tabela.text)

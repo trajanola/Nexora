@@ -12,14 +12,23 @@ from django.utils import timezone
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    DossieAuditoria,
     Leitura,
     MensagemContato,
+    MissaoOperacional,
     OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
 )
-from .services import calcular_anomalias, calcular_eficiencia_co2, estimar_credito_bndes
+from .services import (
+    calcular_anomalias,
+    calcular_eficiencia_co2,
+    calcular_maturidade_operacional,
+    emitir_dossie_auditoria,
+    estimar_credito_bndes,
+    sincronizar_missoes,
+)
 
 
 class BaseTestCase(TestCase):
@@ -838,3 +847,103 @@ class Epico3DiagnosticoEAlertasNRTests(BaseTestCase):
             reverse('dispositivo_detalhe', args=[self.dispositivo.pk]),
         )
         self.assertContains(resposta_detalhe, 'Abrir OS Corretiva')
+
+
+class Epico4MaturidadeMissoesEDossieTests(BaseTestCase):
+    def test_us08_calcula_nota_e_estagio_de_maturidade_dinamicamente(self):
+        sem_leituras = calcular_maturidade_operacional(self.usuario)
+        self.assertEqual(sem_leituras['nota'], 0)
+        self.assertEqual(sem_leituras['estagio'], 'Reativo')
+        self.assertEqual(sem_leituras['proximo_estagio'], 'Preventivo')
+        self.assertGreater(sem_leituras['percentual_para_proximo'], 0)
+
+        Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('50.00'),
+            temperatura_c=Decimal('60.00'),
+            corrente_a=Decimal('20.00'),
+            ruido_db=Decimal('70.00'),
+        )
+        OrdemServico.objects.create(
+            dispositivo=self.dispositivo,
+            resumo='Preventiva concluída',
+            status=OrdemServico.Status.CONCLUIDA,
+            causa_confirmada='Desgaste natural',
+            acao_realizada='Substituição preventiva',
+            tempo_parada_minutos=15,
+        )
+        com_dados = calcular_maturidade_operacional(self.usuario)
+        self.assertEqual(com_dados['nota'], 100)
+        self.assertEqual(com_dados['estagio'], 'Prescritivo')
+        self.assertIsNone(com_dados['proximo_estagio'])
+        self.assertEqual(com_dados['percentual_para_proximo'], 0)
+
+    def test_us09_exibe_ate_tres_missoes_prioritarias_e_conclui_automaticamente(self):
+        trilha_inicial = sincronizar_missoes(self.usuario)
+        self.assertLessEqual(len(trilha_inicial['prioritarias']), 3)
+        codigos_pendentes = [m.codigo for m in trilha_inicial['prioritarias']]
+        self.assertIn('primeira-leitura', codigos_pendentes)
+
+        Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('40.00'),
+            temperatura_c=Decimal('55.00'),
+        )
+        trilha_atualizada = sincronizar_missoes(self.usuario)
+        missao_leitura = MissaoOperacional.objects.get(
+            empresa=self.usuario.perfil.empresa,
+            codigo='primeira-leitura',
+        )
+        missao_sensor = MissaoOperacional.objects.get(
+            empresa=self.usuario.perfil.empresa,
+            codigo=f'sensor-multivariavel-{self.dispositivo.pk}',
+        )
+        self.assertEqual(missao_leitura.status, MissaoOperacional.Status.CONCLUIDA)
+        self.assertEqual(missao_sensor.status, MissaoOperacional.Status.CONCLUIDA)
+        self.assertLessEqual(len(trilha_atualizada['prioritarias']), 3)
+
+    def test_us10_emite_e_exporta_dossie_auditavel_em_pdf_e_json_com_hash(self):
+        Leitura.objects.create(
+            dispositivo=self.dispositivo,
+            valor_kwh=Decimal('45.00'),
+            temperatura_c=Decimal('60.00'),
+        )
+        self.client.login(username='carlos', password='senha-forte-123')
+        resposta_emissao = self.client.post(reverse('dossie_auditoria'), follow=True)
+        self.assertEqual(resposta_emissao.status_code, 200)
+        dossie = DossieAuditoria.objects.get()
+        self.assertEqual(len(dossie.hash_sha256), 64)
+        self.assertContains(resposta_emissao, dossie.hash_sha256)
+
+        resposta_json = self.client.get(
+            reverse('dossie_exportar', args=[dossie.pk, 'json']),
+        )
+        self.assertEqual(resposta_json.status_code, 200)
+        self.assertEqual(resposta_json['Content-Type'], 'application/json; charset=utf-8')
+        corpo_json = json.loads(resposta_json.content.decode('utf-8'))
+        self.assertEqual(corpo_json['hash_sha256'], dossie.hash_sha256)
+        self.assertIn('resumo_executivo', corpo_json['evidencias'])
+        self.assertIn('historico_eficiencia_energetica', corpo_json['evidencias'])
+        self.assertIn('indices_seguranca', corpo_json['evidencias'])
+
+        resposta_pdf = self.client.get(
+            reverse('dossie_exportar', args=[dossie.pk, 'pdf']),
+        )
+        self.assertEqual(resposta_pdf.status_code, 200)
+        self.assertEqual(resposta_pdf['Content-Type'], 'application/pdf')
+        self.assertTrue(resposta_pdf.content.startswith(b'%PDF-1.4'))
+        self.assertIn(dossie.hash_sha256.encode('ascii'), resposta_pdf.content)
+
+    def test_us10_dossie_respeita_isolamento_por_empresa_e_perfil(self):
+        dossie = emitir_dossie_auditoria(self.usuario)
+        self.client.login(username='outro', password='senha-forte-123')
+        self.assertEqual(
+            self.client.get(reverse('dossie_exportar', args=[dossie.pk, 'json'])).status_code,
+            404,
+        )
+
+        perfil = self.usuario.perfil
+        perfil.papel = PerfilEmpresa.Papel.MANUTENCAO
+        perfil.save(update_fields=['papel'])
+        self.client.login(username='carlos', password='senha-forte-123')
+        self.assertEqual(self.client.get(reverse('dossie_auditoria')).status_code, 403)

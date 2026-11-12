@@ -39,4 +39,10 @@ urlpatterns = [
     path('painel/', views.Painel.as_view(), name='painel'),
     path('parametros/', views.ParametrosView.as_view(), name='parametros'),
     path('credito-bndes/', views.CreditoBNDESView.as_view(), name='credito_bndes'),
+    path('dossie-auditoria/', views.DossieAuditoriaView.as_view(), name='dossie_auditoria'),
+    path(
+        'dossie-auditoria/<int:pk>/exportar/<str:formato>/',
+        views.DossieExportarView.as_view(),
+        name='dossie_exportar',
+    ),
 ]

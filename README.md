@@ -26,7 +26,8 @@ A maioria das empresas falha na adoção de IoT não por falta de sensores, mas 
 A _NEXORA_ é uma plataforma desenvolvida para modernizar, simplificar e otimizar a gestão de ecossistemas educacionais. O sistema conecta alunos, professores e administradores em um ambiente integrado, intuitivo e funcional, facilitando o acompanhamento acadêmico, a organização de conteúdos e a comunicação institucional.
 
 ## ⚙️ &nbsp;Funcionalidades da plataforma
-
+<details>
+<summary><b>Funcionalidades do projeto</b> (clique para expandir)</summary>
 Depois de criar uma conta e entrar, o usuário pode:
 
 - Cadastrar dispositivos com localização, limite de consumo e custo estimado de reparo preventivo.
@@ -66,6 +67,8 @@ curl -X POST http://127.0.0.1:8000/api/leituras/ \
 Leituras válidas são persistidas mesmo quando outra entrada do lote é rejeitada; nesse caso a API responde `207`. Reenviar o mesmo `id_externo` não cria uma duplicata.
 
 Na tela **Tarifa**, o proprietário ou usuário financeiro também pode informar o consumo base mensal e o fator de emissão. O painel compara as leituras do mês com essa linha de base. A tela **Crédito BNDES** calcula uma simulação configurável usando o sistema de amortização Price; os parâmetros não representam uma oferta oficial do BNDES.
+
+</details>
 
 ## 🛠️ &nbsp;Tecnologias Utilizadas
 
@@ -512,7 +515,7 @@ Leia o nosso **[Guia de Contribuição (CONTRIBUTING.md)](./CONTRIBUTING.md)** p
 
 -  📑 [&nbsp;Jira](https://nexora-cesar.atlassian.net/jira/software/projects/NEX/summary?atlOrigin=eyJpIjoiOTVmMjUwY2UzMzlkNDExOTgzMDMxZjRjNzMxNDI0OTUiLCJwIjoiaiJ9)
 -  **O BackLog das entregas se encontra na aba de documentos do Jira.**
--  Deploy em Desenvolvimento: [Clique Aqui](http://3.95.179.201)
+-  Deploy em Desenvolvimento: [Clique Aqui](https://nexora-oadm.onrender.com/)
 
 ## 🐞 &nbsp;Encontrou um bug?
 - Abra uma issue na aba **[Issues](https://github.com/trajanola/Nexora/issues)** do repositório e inclua os passos para reproduzir o problema.

@@ -18,6 +18,7 @@
             {% if request.user.perfil.papel != 'manutencao' %}
                 <a class="action-link" href="{% url 'parametros' %}">Tarifa</a>
                 <a class="action-link" href="{% url 'credito_bndes' %}">Crédito BNDES</a>
+                <a class="action-link" href="{% url 'dossie_auditoria' %}">Dossiê B2B</a>
             {% endif %}
             {% if request.user.perfil.papel == 'proprietario' %}
                 <a class="action-link" href="{% url 'convites_empresa' %}">Membros</a>

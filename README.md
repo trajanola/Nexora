@@ -36,6 +36,9 @@ Depois de criar uma conta e entrar, o usuário pode:
 - Acompanhar no painel o custo mensal do consumo excedente e, quando há custo de reparo cadastrado, o payback estimado em meses.
 - Configurar uma linha de base mensal e um fator de emissão para acompanhar eficiência energética, economia de kWh e CO2e evitado.
 - Simular crédito BNDES com valor financiado, desconto configurável, juros e prazo, sem substituir a análise da instituição financeira.
+- Receber diagnósticos causais multivariáveis (energia, temperatura e vibração) com prescrição automática em linguagem simples e alertas de segurança normativa NR-12 e NR-15.
+- Acompanhar o Índice Nexora de Maturidade Operacional (0 a 100 pontos, estágios Reativo, Preventivo, Preditivo e Prescritivo) e concluir missões operacionais gamificadas.
+- Emitir e exportar o Dossiê Digital Auditável Criptografado em PDF e JSON com carimbo de tempo imutável e assinatura SHA-256 / HMAC-SHA256 para homologação B2B.
 - Enviar mensagens pelo formulário Fale Conosco; a equipe consulta as mensagens no Django Admin.
 - Convidar novos membros para a empresa como Financeiro ou Gerente de Manutenção. O Gerente de Manutenção não pode acessar os parâmetros financeiros.
 
@@ -354,21 +357,133 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 </details>
 
 <details>
-<summary><b>📌 Entrega 4: Próximas histórias de usuário</b> (clique para expandir)</summary>
+<summary><b>📌 Entrega 4: Implementação Completa do MVP, Testes E2E e CI/CD</b> (clique para expandir)</summary>
 
 <br>
 
-As histórias abaixo estão no backlog e **ainda não foram implementadas**. Os cenários completos estão no documento de [Histórias de Usuário](./docs/historias-de-usuario.md).
+Consolidação dos 4 Épicos do MVP Nexora, testes automatizados de sistema (E2E) com Selenium, pipeline de integração e entrega contínua (CI/CD) no GitHub Actions e guia de contribuição.
 
-### US19 — Notificações consolidadas e priorizadas
+---
 
-**Como** Gerente de Manutenção (Carlos), **quero** receber notificações somente de alertas críticos e consolidados por causa raiz, **para** agir rapidamente sem interrupções irrelevantes.
+### Histórias implementadas
 
-**Critérios de aceite:**
-- Ocorrências de severidade alta geram notificação com orientação e link para a ocorrência.
-- Ocorrências de severidade baixa não geram notificação.
-- Sinais da mesma máquina e causa, recebidos em até cinco minutos, são agrupados em uma única notificação.
+Histórias implementadas na **Entrega 04** no formato **POST-IT** (além da evolução das entregas anteriores):
+
+#### US02 — Endpoint REST para Ingestão de Leituras em Lote
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | que o gateway da fábrica envie leituras de sensores em lote via API com autenticação por token e prevenção de duplicatas |
+| **Para** | garantir que os dados de telemetria cheguem completos mesmo após oscilações de rede no chão de fábrica |
+| **Critério de pronto** | Endpoint `POST /api/leituras/` aceita lote JSON com `id_externo` idempotente, persiste leituras válidas em rejeição parcial (`HTTP 207`) e suporta grandezas de energia (`kWh`), temperatura (`°C`) e vibração (`mm/s`) |
+
+#### US03 — Tradutor de Anomalias em Custo Financeiro (R$)
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | visualizar no painel a conversão automática de leituras anômalas de energia em custo financeiro mensal em Reais (R$) e o payback do reparo preventivo |
+| **Para** | entender imediatamente quanto dinheiro a fábrica está perdendo por ineficiência e priorizar investimentos |
+| **Critério de pronto** | Painel calcula o consumo excedente mensal multiplicado pela tarifa da empresa, exibe alerta financeiro em R$/mês e calcula o payback estimado quando há custo de reparo preventivo cadastrado |
+
+#### US04 — Calculadora de Eficiência Energética e Emissões de CO₂e
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | acompanhar a economia acumulada em kWh e a redução equivalente em emissões de CO₂e em relação à linha de base mensal |
+| **Para** | comprovar metas de descarbonização e sustentabilidade perante auditorias e clientes corporativos |
+| **Critério de pronto** | Painel compara o consumo mensal com a linha de base configurada, exibindo kWh economizados, percentual de redução e kg de CO₂e evitados |
+
+#### US05 — Simulador de Elegibilidade e Estimativa de Crédito Verde BNDES
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | simular o financiamento de modernização com desconto na taxa de juros atrelado às metas de eficiência energética e ESG |
+| **Para** | avaliar a viabilidade financeira de substituir ou reformar máquinas ineficientes com linhas de crédito verde |
+| **Critério de pronto** | Tela `/credito-bndes/` calcula parcela mensal, total pago e economia estimada pela tabela Price com desconto configurável quando a empresa atinge redução positiva de consumo |
+
+#### US06 — Motor de Diagnóstico Causal Multivariável (Regra de Negócio Prescritiva)
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | que o sistema cruze dados de consumo elétrico, temperatura e vibração para apontar a causa provável da falha e uma recomendação prescritiva em linguagem simples |
+| **Para** | orientar a equipe de manutenção direto na raiz do problema sem precisar interpretar gráficos complexos |
+| **Critério de pronto** | Ingestão correlaciona picos simultâneos em até 10 minutos, registra `OcorrenciaDiagnostico` com causa provável, orientação prescritiva e perda financeira por hora, consolidando sinais repetidos em 5 minutos |
+
+#### US07 — Alertas de Segurança Operacional e Conformidade (NR-12 e NR-15)
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | receber alertas destacados de risco trabalhista e operacional quando os sensores ultrapassarem os limites de segurança da NR-12 e da NR-15 |
+| **Para** | proteger os operadores de acidentes ou insalubridade térmica e evitar interdições e passivos trabalhistas |
+| **Critério de pronto** | Violação de limite térmico (`NR-15`) ou vibração (`NR-12`) cria `AlertaSegurancaNormativa` crítico visível no painel e no detalhe do dispositivo, permitindo reconhecimento rastreável pelo responsável |
+
+#### US08 — Algoritmo do Índice Nexora de Maturidade Operacional
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | visualizar uma pontuação automática de 0 a 100 e o estágio de maturidade operacional da minha fábrica (*Reativo, Preventivo, Preditivo, Prescritivo*) |
+| **Para** | acompanhar a evolução da gestão industrial a partir da telemetria real sem responder questionários manuais |
+| **Critério de pronto** | Algoritmo calcula o score automaticamente com base nos pilares operacionais da empresa e exibe no painel a pontuação atual, o estágio correspondente e os pontos/percentual restantes para o próximo nível |
+
+#### US09 — Trilha Gamificada de Missões Operacionais
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | receber até 3 missões operacionais prioritárias com a pontuação estimada de ganho no índice de maturidade |
+| **Para** | guiar minha equipe nas próximas ações práticas que trazem retorno rápido e aumentam a maturidade da planta |
+| **Critério de pronto** | Painel lista até 3 missões prioritárias com recompensa em pontos de maturidade e atualiza automaticamente o status para *Concluída* quando a ação correspondente é detectada no sistema |
+
+#### US10 — Dossiê Digital Auditável Criptografado para Homologação
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | emitir e exportar um Dossiê Digital Auditável em PDF e JSON contendo resumo executivo, histórico energético, indicadores NR-12/NR-15 e hash criptográfico de validação |
+| **Para** | comprovar a conformidade técnica, energética e trabalhista da fábrica em processos de homologação B2B com grandes montadoras |
+| **Critério de pronto** | Tela `/dossie-auditoria/` gera dossiê com timestamp imutável, hash `SHA-256` do payload canônico e assinatura `HMAC-SHA256`, permitindo download imediato em formato PDF e JSON |
+
+---
+
+### 🤝 Guia de Contribuição
+
+Qualquer pessoa pode configurar o ambiente, rodar a suíte de testes e colaborar com o projeto seguindo nosso guia passo a passo:
+- 📄 **[Guia de Contribuição (CONTRIBUTING.md)](./CONTRIBUTING.md)**
+
+---
+
+### 🧪 Testes de Sistema (E2E) e Pipeline CI/CD
+
+- **Testes E2E com Selenium:** implementados em [`core/tests_e2e.py`](./core/tests_e2e.py), cobrindo cadastro/login, isolamento por empresa, alertas financeiros e reparo preventivo, eficiência energética + crédito BNDES, diagnóstico causal multivariável + NR-12/NR-15 e maturidade operacional + missões + emissão de dossiê auditável.
+- **Pipeline GitHub Actions:** configurada em [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) com os jobs `Django test suite` e `Selenium E2E suite`.
+
+---
+
+### 🎥 Demonstrações em Vídeo (Entrega 04)
+
+- 🎬 **Screencast das novas histórias em produção (URL visível):** _Adicionar link do YouTube_
+- 🎬 **Screencast da execução dos testes E2E (Selenium) com áudio:** _Adicionar link do YouTube_
+- 🎬 **Screencast do pipeline de CI/CD (build, testes e deploy) com áudio:** _Adicionar link do YouTube_
+- 🎬 **Screencast de explicação do código Django (URL -> View -> Template -> Model):** _Adicionar link do YouTube_
+
+---
+
+### 📋 Quadro da Sprint 04 (Jira)
+
+![Quadro da Sprint 04](./docs/entrega3_backlog_jira.png)
+
 </details>
+
+## 🤝 &nbsp;Como Contribuir
+
+Leia o nosso **[Guia de Contribuição (CONTRIBUTING.md)](./CONTRIBUTING.md)** para instruções detalhadas sobre criação de branches, execução dos testes unitários e E2E com Selenium e abertura de Pull Requests.
 
 ## 🔗 &nbsp;Links Importantes
 

@@ -25,9 +25,17 @@ O documento registra as histórias planejadas e implementadas. Além da infraest
 | US16 | Cadastro de dispositivos e sensores pela web | Carlos | 1 | Backlog |
 | US17 | Configuração de tarifa e parâmetros financeiros | Marcos | 2 | Backlog |
 | US03 | Tradutor de anomalias em custo (R$) | Marcos | 2 | Implementada (Entrega 04) |
-| US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Implementada (Entrega 04) |
-| US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Backlog |
-| US20 | Painel executivo de resultados em Reais | Marcos | 4 | Backlog |
+| US18 | Ciclo de vida da Ordem de Serviço corretiva | Carlos | 3 | Implementada (Entrega 03/04) |
+| US02 | Endpoint REST para ingestão de leituras em lote | Carlos | 1 | Implementada (Entrega 04) |
+| US04 | Calculadora de eficiência energética e emissões de CO₂e | Ana | 2 | Implementada (Entrega 04) |
+| US05 | Simulador de elegibilidade e crédito verde BNDES | Ana | 2 | Implementada (Entrega 04) |
+| US06 | Motor de diagnóstico causal multivariável | Carlos | 3 | Implementada (Entrega 04) |
+| US07 | Alertas de segurança operacional NR-12 e NR-15 | Carlos | 3 | Implementada (Entrega 04) |
+| US08 | Algoritmo do Índice Nexora de Maturidade Operacional | Marcos | 4 | Implementada (Entrega 04) |
+| US09 | Trilha gamificada de missões operacionais | Marcos | 4 | Implementada (Entrega 04) |
+| US10 | Dossiê digital auditável criptografado para homologação | Ana | 4 | Implementada (Entrega 04) |
+| US19 | Notificações consolidadas e priorizadas | Carlos | 3 | Implementada via US06 (Entrega 04) |
+| US20 | Painel executivo de resultados em Reais | Marcos | 4 | Implementada via US08 (Entrega 04) |
 | US21 | Cadastro e isolamento de dispositivos | Carlos | 1 | Implementada (Entrega 03) |
 | US22 | Envio e consulta de leituras de consumo | Carlos | 1 | Implementada (Entrega 03) |
 | US23 | Tarifa e custo mensal de anomalias | Marcos | 2 | Implementada (Entrega 03) |
@@ -486,3 +494,93 @@ Histórias selecionadas para implementação nesta entrega, no formato post-it.
 | **Quero** | acompanhar uma Ordem de Serviço do rascunho à conclusão |
 | **Para** | manter o histórico e a rastreabilidade das intervenções por máquina |
 | **Critério de pronto** | A OS pode ser criada como rascunho, aprovada com registro de data/hora e responsável, iniciada e concluída somente após informar causa confirmada, ação realizada e tempo de parada; o histórico aparece em ordem cronológica na página do dispositivo |
+
+---
+
+# Entrega 04
+
+## Histórias implementadas
+
+Histórias implementadas na Entrega 04 no formato post-it.
+
+### US02: Endpoint REST para ingestão de leituras em lote
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | enviar lotes de leituras de telemetria via API autenticada por token com prevenção de duplicatas |
+| **Para** | sincronizar dados armazenados localmente pelo gateway sem perda ou duplicação |
+| **Critério de pronto** | Endpoint `POST /api/leituras/` aceita lote JSON com `id_externo` idempotente, persiste leituras válidas em rejeição parcial (`HTTP 207`) e suporta grandezas de energia (`kWh`), temperatura (`°C`) e vibração (`mm/s`) |
+
+### US03: Tradutor de anomalias em custo financeiro (R$)
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | visualizar no dashboard a conversão de leituras anômalas em custo mensal em Reais e o payback do reparo preventivo |
+| **Para** | entender o impacto financeiro das falhas na lucratividade da fábrica |
+| **Critério de pronto** | Painel calcula o consumo excedente mensal multiplicado pela tarifa da empresa, exibe alerta financeiro em R$/mês e calcula o payback estimado quando há custo de reparo preventivo cadastrado |
+
+### US04: Calculadora de eficiência energética e emissões de CO₂e
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | acompanhar a economia acumulada em kWh e a redução equivalente em emissões de CO₂e em relação à linha de base mensal |
+| **Para** | comprovar metas de descarbonização e sustentabilidade perante auditorias e clientes corporativos |
+| **Critério de pronto** | Painel compara o consumo mensal com a linha de base configurada, exibindo kWh economizados, percentual de redução e kg de CO₂e evitados |
+
+### US05: Simulador de elegibilidade e estimativa de crédito verde BNDES
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | simular o financiamento de modernização com desconto na taxa de juros atrelado às metas de eficiência energética e ESG |
+| **Para** | avaliar a viabilidade financeira de substituir ou reformar máquinas ineficientes com linhas de crédito verde |
+| **Critério de pronto** | Tela `/credito-bndes/` calcula parcela mensal, total pago e economia estimada pela tabela Price com desconto configurável quando a empresa atinge redução positiva de consumo |
+
+### US06: Motor de diagnóstico causal multivariável (regra de negócio prescritiva)
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | que o sistema cruze dados de consumo elétrico, temperatura e vibração para apontar a causa provável da falha e uma recomendação prescritiva em linguagem simples |
+| **Para** | orientar a equipe de manutenção direto na raiz do problema sem precisar interpretar gráficos complexos |
+| **Critério de pronto** | Ingestão correlaciona picos simultâneos em até 10 minutos, registra `OcorrenciaDiagnostico` com causa provável, orientação prescritiva e perda financeira por hora, consolidando sinais repetidos em 5 minutos |
+
+### US07: Alertas de segurança operacional e conformidade (NR-12 e NR-15)
+
+| | |
+|---|---|
+| **Como** | Gerente de Manutenção (Carlos) |
+| **Quero** | receber alertas destacados de risco trabalhista e operacional quando os sensores ultrapassarem os limites de segurança da NR-12 e da NR-15 |
+| **Para** | proteger os operadores de acidentes ou insalubridade térmica e evitar interdições e passivos trabalhistas |
+| **Critério de pronto** | Violação de limite térmico (`NR-15`) ou vibração (`NR-12`) cria `AlertaSegurancaNormativa` crítico visível no painel e no detalhe do dispositivo, permitindo reconhecimento rastreável pelo responsável |
+
+### US08: Algoritmo do Índice Nexora de Maturidade Operacional
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | visualizar uma pontuação automática de 0 a 100 e o estágio de maturidade operacional da minha fábrica (*Reativo, Preventivo, Preditivo, Prescritivo*) |
+| **Para** | acompanhar a evolução da gestão industrial a partir da telemetria real sem responder questionários manuais |
+| **Critério de pronto** | Algoritmo calcula o score automaticamente com base nos pilares operacionais da empresa e exibe no painel a pontuação atual, o estágio correspondente e os pontos/percentual restantes para o próximo nível |
+
+### US09: Trilha gamificada de missões operacionais
+
+| | |
+|---|---|
+| **Como** | Proprietário (Marcos) |
+| **Quero** | receber até 3 missões operacionais prioritárias com a pontuação estimada de ganho no índice de maturidade |
+| **Para** | guiar minha equipe nas próximas ações práticas que trazem retorno rápido e aumentam a maturidade da planta |
+| **Critério de pronto** | Painel lista até 3 missões prioritárias com recompensa em pontos de maturidade e atualiza automaticamente o status para *Concluída* quando a ação correspondente é detectada no sistema |
+
+### US10: Dossiê digital auditável criptografado para homologação
+
+| | |
+|---|---|
+| **Como** | Diretora Financeira e de Compliance (Ana) |
+| **Quero** | emitir e exportar um Dossiê Digital Auditável em PDF e JSON contendo resumo executivo, histórico energético, indicadores NR-12/NR-15 e hash criptográfico de validação |
+| **Para** | comprovar a conformidade técnica, energética e trabalhista da fábrica em processos de homologação B2B com grandes montadoras |
+| **Critério de pronto** | Tela `/dossie-auditoria/` gera dossiê com timestamp imutável, hash `SHA-256` do payload canônico e assinatura `HMAC-SHA256`, permitindo download imediato em formato PDF e JSON |
+

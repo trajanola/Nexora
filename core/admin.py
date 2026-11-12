@@ -3,9 +3,12 @@ from django.contrib import admin
 from .models import (
     ConviteEmpresa,
     Dispositivo,
+    DossieAuditoria,
     Empresa,
     Leitura,
     MensagemContato,
+    MissaoOperacional,
+    OcorrenciaCausal,
     OrdemServico,
     Parametro,
     PerfilEmpresa,
@@ -19,7 +22,15 @@ class LeituraInline(admin.TabularInline):
 
 @admin.register(Dispositivo)
 class DispositivoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'empresa', 'dono', 'localizacao', 'limite_kwh', 'criado_em')
+    list_display = (
+        'nome',
+        'empresa',
+        'dono',
+        'localizacao',
+        'limite_kwh',
+        'limite_ruido_db',
+        'criado_em',
+    )
     list_filter = ('empresa',)
     search_fields = ('nome', 'localizacao')
     readonly_fields = ('token',)
@@ -28,8 +39,16 @@ class DispositivoAdmin(admin.ModelAdmin):
 
 @admin.register(Leitura)
 class LeituraAdmin(admin.ModelAdmin):
-    list_display = ('dispositivo', 'valor_kwh', 'registrado_em')
-    list_filter = ('dispositivo',)
+    list_display = (
+        'dispositivo',
+        'valor_kwh',
+        'temperatura_c',
+        'corrente_a',
+        'ruido_db',
+        'alerta_seguranca_nr12',
+        'registrado_em',
+    )
+    list_filter = ('dispositivo', 'alerta_seguranca_nr12')
 
 
 @admin.register(Parametro)
@@ -50,6 +69,51 @@ class OrdemServicoAdmin(admin.ModelAdmin):
         'aprovada_por',
         'concluida_em',
         'concluida_por',
+    )
+
+
+@admin.register(OcorrenciaCausal)
+class OcorrenciaCausalAdmin(admin.ModelAdmin):
+    list_display = (
+        'dispositivo',
+        'causa_raiz',
+        'severidade',
+        'norma',
+        'quantidade_eventos',
+        'ordem_servico',
+        'detectada_em',
+    )
+    list_filter = ('severidade', 'norma')
+    search_fields = ('dispositivo__nome', 'causa_raiz', 'mensagem_prescritiva')
+
+
+@admin.register(MissaoOperacional)
+class MissaoOperacionalAdmin(admin.ModelAdmin):
+    list_display = ('titulo', 'empresa', 'pontos_ganho', 'prioridade', 'status', 'concluida_em')
+    list_filter = ('status', 'empresa')
+    search_fields = ('titulo', 'codigo', 'empresa__nome')
+
+
+@admin.register(DossieAuditoria)
+class DossieAuditoriaAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'empresa',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'hash_sha256',
+        'carimbo_data_hora',
+    )
+    list_filter = ('empresa', 'estagio_maturidade')
+    readonly_fields = (
+        'empresa',
+        'gerado_por',
+        'carimbo_data_hora',
+        'hash_sha256',
+        'assinatura_hmac',
+        'nota_maturidade',
+        'estagio_maturidade',
+        'payload_json',
     )
 
 

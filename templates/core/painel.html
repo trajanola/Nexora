@@ -10,7 +10,44 @@
     <div class="cartao"><span>Tarifa atual</span><strong>R$ {{ resumo.tarifa|floatformat:4 }}/kWh</strong></div>
     <div class="cartao"><span>Economia energética no mês</span><strong>{{ eficiencia.economia_kwh|floatformat:2 }} kWh</strong></div>
     <div class="cartao"><span>CO₂ evitado no mês</span><strong>{{ eficiencia.co2_evitado_kg|floatformat:2 }} kg</strong></div>
+    <div class="cartao"><span>Alertas causais / NR</span><strong>{{ ocorrencias|length }}</strong></div>
+    <div class="cartao"><span>Índice de Maturidade</span><strong>{{ maturidade.nota }}/100 · {{ maturidade.estagio }}</strong></div>
 </div>
+
+<section class="page-card">
+    <h2>Índice Nexora de Maturidade Operacional</h2>
+    <p>
+        Estágio atual: <strong>{{ maturidade.estagio }}</strong> (nota <strong>{{ maturidade.nota }}/100</strong>).
+        {% if maturidade.proximo_estagio %}
+            Faltam <strong>{{ maturidade.percentual_para_proximo }}%</strong> ({{ maturidade.pontos_para_proximo }} ponto{{ maturidade.pontos_para_proximo|pluralize }}) para alcançar o nível <strong>{{ maturidade.proximo_estagio }}</strong>.
+        {% else %}
+            Sua operação atingiu o nível máximo de maturidade (<strong>Prescritivo</strong>).
+        {% endif %}
+    </p>
+</section>
+
+<section class="page-card">
+    <h2>Trilha Gamificada de Missões Operacionais</h2>
+    {% if missoes.prioritarias %}
+        <div class="tabela-wrap">
+            <table class="tabela">
+                <thead><tr><th>Missão prioritária</th><th>Passo a passo prático</th><th>Ganho estimado</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for missao in missoes.prioritarias %}
+                        <tr>
+                            <td><strong>{{ missao.titulo }}</strong></td>
+                            <td>{{ missao.descricao }}</td>
+                            <td>+{{ missao.pontos_ganho }} pts</td>
+                            <td><span class="os-status">{{ missao.get_status_display }}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="ok-box">Todas as missões operacionais atuais foram concluídas automaticamente!</div>
+    {% endif %}
+</section>
 
 <section class="page-card">
     <h2>Eficiência energética</h2>
@@ -41,6 +78,27 @@
         {% endfor %}
     {% else %}
         <div class="ok-box">Todos os dispositivos estão dentro do limite: não há custos adicionais por anomalias neste mês.</div>
+    {% endif %}
+</section>
+
+<section class="page-card">
+    <h2>Diagnóstico Causal e Conformidade NR-12 / NR-15</h2>
+    {% if ocorrencias %}
+        {% for ocorrencia in ocorrencias %}
+            <div class="alerta">
+                <div class="topo-acoes">
+                    <strong>{{ ocorrencia.dispositivo.nome }} · {{ ocorrencia.causa_raiz }}</strong>
+                    <span class="os-status">{{ ocorrencia.get_norma_display }} · Severidade {{ ocorrencia.get_severidade_display }}</span>
+                </div>
+                <p><strong>Diagnóstico prescritivo:</strong> {{ ocorrencia.mensagem_prescritiva }}</p>
+                <p>Sinais correlacionados ({{ ocorrencia.quantidade_eventos }} evento{{ ocorrencia.quantidade_eventos|pluralize }}): {{ ocorrencia.sinais_correlacionados }}.</p>
+                {% if ocorrencia.ordem_servico %}
+                    <p>Ordem de Serviço Corretiva gerada automaticamente: <a href="{% url 'ordem_servico_detalhe' ocorrencia.ordem_servico.pk %}"><strong>OS #{{ ocorrencia.ordem_servico.pk }} ({{ ocorrencia.ordem_servico.get_status_display }})</strong></a></p>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="ok-box">Nenhuma ocorrência causal ou desvio regulatório (NR-12 / NR-15) registrado.</div>
     {% endif %}
 </section>
 {% endblock %}

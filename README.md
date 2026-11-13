@@ -503,7 +503,7 @@ Qualquer pessoa pode configurar o ambiente, rodar a suíte de testes e colaborar
 
 ### 📋 Quadro da Sprint 04 (Jira)
 
-![Quadro da Sprint 04](./docs/entrega3_backlog_jira.png)
+![Quadro da Sprint 04](./docs/Entrega4_jira.png)
 
 </details>
 

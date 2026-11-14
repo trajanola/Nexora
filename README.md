@@ -363,7 +363,7 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ### 🎥 Demonstrações em Vídeo
 
 ---
-
+- 🎬 **[Screencast de CI/CD com build e deployment automatizado](https://www.youtube.com/watch?v=oq2w2E6JkrA)**
 - 🎬 **[Screencast de explicação do código Django](https://youtu.be/MTF9BKQNVtI?si=Ci19lpYDu7i5IkUc)**
 
 ### 👾 Print Issue:

@@ -494,7 +494,7 @@ Qualquer pessoa pode configurar o ambiente, rodar a suíte de testes e colaborar
 
 ### 🎥 Demonstrações em Vídeo (Entrega 04)
 
-- 🎬 **Screencast das novas histórias em produção (URL visível):** _Adicionar link do YouTube_
+- 🎬 **[Screencast das novas histórias em produção (URL visível):](https://www.youtube.com/watch?v=UYZ6V0K9x3E)**
 - 🎬 **[Screencast da execução dos testes E2E (Selenium) com áudio:](https://www.youtube.com/watch?v=fLpo97kAZOM)**
 - 🎬 **[Screencast do pipeline de CI/CD (build, testes e deploy) com áudio:](https://www.youtube.com/watch?v=oq2w2E6JkrA)**
 - 🎬 **[Screencast de explicação do código Django](https://www.youtube.com/watch?v=XtolFVYktuo)**

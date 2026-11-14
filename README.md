@@ -363,7 +363,7 @@ Todas as histórias, escritas com cenários de validação em BDD (Gherkin): **[
 ### 🎥 Demonstrações em Vídeo
 
 ---
-- 🎬 **[Screencast de CI/CD com build e deployment automatizado](https://www.youtube.com/watch?v=oq2w2E6JkrA)**
+
 - 🎬 **[Screencast de explicação do código Django](https://youtu.be/MTF9BKQNVtI?si=Ci19lpYDu7i5IkUc)**
 
 ### 👾 Print Issue:
@@ -496,7 +496,7 @@ Qualquer pessoa pode configurar o ambiente, rodar a suíte de testes e colaborar
 
 - 🎬 **Screencast das novas histórias em produção (URL visível):** _Adicionar link do YouTube_
 - 🎬 **Screencast da execução dos testes E2E (Selenium) com áudio:** _Adicionar link do YouTube_
-- 🎬 **Screencast do pipeline de CI/CD (build, testes e deploy) com áudio:** _Adicionar link do YouTube_
+- 🎬 **[Screencast do pipeline de CI/CD (build, testes e deploy) com áudio:](https://www.youtube.com/watch?v=oq2w2E6JkrA)**
 - 🎬 **[Screencast de explicação do código Django](https://www.youtube.com/watch?v=XtolFVYktuo)**
 
 ---
